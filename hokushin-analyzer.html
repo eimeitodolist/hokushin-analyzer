@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>北辰テスト 成績分析</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple: #7c3aed;
+      --purple-light: #ede9fe;
+      --purple-grad: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --green-line: #06c755;
+      --green-dark: #059444;
+      --red: #dc2626;
+      --amber: #d97706;
+      --emerald: #059669;
+      --gray-bg: #f4f6fa;
+      --card-bg: #ffffff;
+      --border: #e5e7eb;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --radius: 14px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN',
+                   'Noto Sans JP', sans-serif;
+      background: var(--gray-bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--purple-grad);
+      color: #fff;
+      padding: 24px 20px 20px;
+      text-align: center;
+    }
+    .header h1 { font-size: 21px; font-weight: 800; letter-spacing: .5px; }
+    .header p  { font-size: 13px; opacity: .85; margin-top: 5px; }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 580px;
+      margin: 0 auto;
+      padding: 18px 14px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 2px 14px rgba(0,0,0,.07);
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ── Upload zone ── */
+    .upload-zone {
+      border: 2.5px dashed #c4b5fd;
+      border-radius: 12px;
+      padding: 30px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      background: var(--purple-light);
+      user-select: none;
+    }
+    .upload-zone:hover,
+    .upload-zone.drag-over { border-color: var(--purple); background: #ddd6fe; }
+    .upload-icon { font-size: 38px; margin-bottom: 8px; }
+    .upload-label { font-size: 14px; color: #4c1d95; font-weight: 600; }
+    .upload-sub { font-size: 12px; color: #7c3aed; margin-top: 4px; }
+    #fileInput, #cameraInput { display: none; }
+
+    /* ── Thumbnail grid ── */
+    .thumb-grid {
+      display: none;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .thumb-grid.visible { display: grid; }
+    .thumb-item {
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--gray-bg);
+    }
+    .thumb-item img { width: 100%; height: 100%; object-fit: cover; }
+    .thumb-delete {
+      position: absolute;
+      top: 3px; right: 3px;
+      width: 22px; height: 22px;
+      background: rgba(0,0,0,.65);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .thumb-add {
+      aspect-ratio: 1;
+      border: 2px dashed #c4b5fd;
+      border-radius: 8px;
+      background: var(--purple-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 28px;
+      color: var(--purple);
+      transition: background .2s, border-color .2s;
+    }
+    .thumb-add:hover { background: #ddd6fe; border-color: var(--purple); }
+    .thumb-count {
+      display: none;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    /* ── Camera button ── */
+    .camera-btn-row { display: flex; margin-top: 10px; }
+    .camera-btn {
+      flex: 1;
+      padding: 12px;
+      background: #fff;
+      color: var(--purple);
+      border: 2px solid #c4b5fd;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background .2s, border-color .2s;
+    }
+    .camera-btn:hover { background: var(--purple-light); border-color: var(--purple); }
+
+    /* ── Analyze button ── */
+    .analyze-btn {
+      width: 100%;
+      padding: 16px;
+      background: var(--purple-grad);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+      letter-spacing: .3px;
+    }
+    .analyze-btn:hover:not(:disabled) { opacity: .9; transform: translateY(-1px); }
+    .analyze-btn:active:not(:disabled) { transform: translateY(0); }
+    .analyze-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+    /* ── Status ── */
+    .status {
+      display: none;
+      text-align: center;
+      padding: 14px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .status.visible { display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .spinner {
+      width: 20px; height: 20px;
+      border: 3px solid var(--border);
+      border-top-color: var(--purple);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Error ── */
+    .error-box {
+      display: none;
+      background: #fee2e2;
+      color: var(--red);
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .error-box.visible { display: block; }
+
+    /* ── Score Grid ── */
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .score-chip {
+      background: var(--gray-bg);
+      border-radius: 10px;
+      padding: 10px 4px;
+      text-align: center;
+    }
+    .score-chip .subj { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+    .score-chip .dev  { font-size: 20px; font-weight: 800; line-height: 1; }
+    .score-chip .pts  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .score-chip.high .dev { color: var(--emerald); }
+    .score-chip.mid  .dev { color: var(--amber); }
+    .score-chip.low  .dev { color: var(--red); }
+
+    /* ── Result text ── */
+    .result-text {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      font-size: 14px;
+      line-height: 1.9;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* ── Copy button ── */
+    .copy-btn {
+      width: 100%;
+      margin-top: 12px;
+      padding: 15px;
+      background: var(--green-line);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background .2s, transform .1s;
+    }
+    .copy-btn:hover { background: #05a847; transform: translateY(-1px); }
+    .copy-btn:active { transform: translateY(0); }
+    .copy-btn.copied { background: var(--green-dark); }
+
+    #resultCard { display: none; }
+
+    @media (max-width: 360px) {
+      .score-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📊 北辰テスト 成績分析</h1>
+  <p>成績表の写真をアップロードしてAIが分析・フィードバックします</p>
+</div>
+
+<div class="container">
+
+  <!-- Upload -->
+  <div class="card">
+    <div class="card-title">📷 成績表の写真（最大4枚）</div>
+    <div class="upload-zone" id="uploadZone">
+      <div class="upload-icon">📄</div>
+      <div class="upload-label">ここをタップして写真を選択</div>
+      <div class="upload-sub">JPG / PNG / HEIC 対応 ／ ドラッグ＆ドロップも可</div>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" multiple />
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" />
+    <div class="thumb-grid" id="thumbGrid"></div>
+    <div class="thumb-count" id="thumbCount"></div>
+    <div class="camera-btn-row">
+      <button class="camera-btn" id="cameraBtn">📸 カメラで撮影する</button>
+    </div>
+    <div class="error-box" id="uploadError"></div>
+  </div>
+
+  <!-- Analyze -->
+  <button class="analyze-btn" id="analyzeBtn" disabled>🔍 成績を分析する</button>
+
+  <!-- Status -->
+  <div class="status" id="statusArea">
+    <div class="spinner"></div>
+    <span id="statusText">分析中...</span>
+  </div>
+
+  <!-- Error -->
+  <div class="error-box" id="apiError"></div>
+
+  <!-- Result -->
+  <div class="card" id="resultCard">
+    <div class="card-title">📊 分析結果</div>
+    <div class="score-grid" id="scoreGrid"></div>
+    <div class="result-text" id="resultText"></div>
+    <button class="copy-btn" id="copyBtn">
+      <span>📋</span><span id="copyLabel">LINEメッセージをコピー</span>
+    </button>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+'use strict';
+
+const API_URL  = '/api/analyze';
+const MODEL    = 'claude-sonnet-4-5';
+const SUBJECTS = ['英語', '数学', '国語', '理科', '社会'];
+const MAX_IMGS = 4;
+
+/* ── DOM refs ── */
+const $ = id => document.getElementById(id);
+const uploadZone  = $('uploadZone');
+const fileInput   = $('fileInput');
+const cameraInput = $('cameraInput');
+const cameraBtn   = $('cameraBtn');
+const thumbGrid   = $('thumbGrid');
+const thumbCount  = $('thumbCount');
+const analyzeBtn  = $('analyzeBtn');
+const statusArea  = $('statusArea');
+const statusText  = $('statusText');
+const resultCard  = $('resultCard');
+const scoreGrid   = $('scoreGrid');
+const resultText  = $('resultText');
+const copyBtn     = $('copyBtn');
+const copyLabel   = $('copyLabel');
+const uploadError = $('uploadError');
+const apiError    = $('apiError');
+
+let images = []; // [{base64: string, type: string}, ...]
+
+/* ── Upload zone ── */
+uploadZone.addEventListener('click', () => fileInput.click());
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('drag-over');
+  if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files.length) addFiles(fileInput.files);
+  fileInput.value = '';
+});
+cameraBtn.addEventListener('click', () => cameraInput.click());
+cameraInput.addEventListener('change', () => {
+  if (cameraInput.files.length) addFiles(cameraInput.files);
+  cameraInput.value = '';
+});
+
+function addFiles(files) {
+  hideError(uploadError);
+  const slots = MAX_IMGS - images.length;
+  if (slots <= 0) {
+    showError(uploadError, `写真は最大${MAX_IMGS}枚までです。不要な写真を削除してから追加してください。`);
+    return;
+  }
+  const toAdd = Array.from(files).filter(f => f.type.startsWith('image/')).slice(0, slots);
+  if (toAdd.length === 0) {
+    showError(uploadError, '画像ファイル（JPG / PNG など）を選択してください。');
+    return;
+  }
+  let loaded = 0;
+  toAdd.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      images.push({ base64: e.target.result.split(',')[1], type: file.type });
+      loaded++;
+      if (loaded === toAdd.length) {
+        renderThumbs();
+        refreshBtn();
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function removeImage(index) {
+  images.splice(index, 1);
+  renderThumbs();
+  refreshBtn();
+}
+
+function renderThumbs() {
+  if (images.length === 0) {
+    uploadZone.style.display = '';
+    thumbGrid.classList.remove('visible');
+    thumbCount.style.display = 'none';
+    return;
+  }
+
+  uploadZone.style.display = 'none';
+  thumbGrid.classList.add('visible');
+  thumbCount.style.display = 'block';
+  thumbCount.textContent = `${images.length}枚 選択中 / 最大${MAX_IMGS}枚`;
+
+  thumbGrid.innerHTML = '';
+  images.forEach((img, i) => {
+    const item = document.createElement('div');
+    item.className = 'thumb-item';
+    const el = document.createElement('img');
+    el.src = `data:${img.type};base64,${img.base64}`;
+    el.alt = `成績表${i + 1}`;
+    const del = document.createElement('button');
+    del.className = 'thumb-delete';
+    del.title = '削除';
+    del.textContent = '✕';
+    del.addEventListener('click', () => removeImage(i));
+    item.append(el, del);
+    thumbGrid.appendChild(item);
+  });
+
+  if (images.length < MAX_IMGS) {
+    const add = document.createElement('div');
+    add.className = 'thumb-add';
+    add.title = '写真を追加';
+    add.textContent = '＋';
+    add.addEventListener('click', () => fileInput.click());
+    thumbGrid.appendChild(add);
+  }
+}
+
+function refreshBtn() {
+  analyzeBtn.disabled = images.length === 0;
+}
+
+/* ── Analyze ── */
+analyzeBtn.addEventListener('click', async () => {
+  if (images.length === 0) return;
+
+  setUI(true);
+  hideError(apiError);
+  resultCard.style.display = 'none';
+
+  try {
+    setStatus('📸 成績表を読み取っています…');
+    const scores = await extractScores();
+
+    setStatus('✍️ フィードバックを生成しています…');
+    const msg = await generateAdvice(scores);
+
+    displayResults(scores, msg);
+  } catch (err) {
+    showError(apiError, err.message);
+  } finally {
+    setUI(false);
+  }
+});
+
+/* ── Step 1: extract scores ── */
+async function extractScores() {
+  const prompt =
+`この北辰テストの成績表から以下の情報をJSON形式で抽出してください。
+必ずJSON形式のみで返答し、余分なテキストは不要です。
+{
+  "subjects": {
+    "英語": {"score": 点数, "deviation": 偏差値},
+    "数学": {"score": 点数, "deviation": 偏差値},
+    "国語": {"score": 点数, "deviation": 偏差値},
+    "理科": {"score": 点数, "deviation": 偏差値},
+    "社会": {"score": 点数, "deviation": 偏差値}
+  },
+  "total_deviation": 5教科合計偏差値
+}
+読み取れない場合はnullを入れてください。`;
+
+  const res = await callAPI(prompt, true, 2048);
+  const raw = res.content[0].text.trim();
+
+  let jsonStr = null;
+  const codeBlock = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (codeBlock) {
+    jsonStr = codeBlock[1].trim();
+  } else {
+    const obj = raw.match(/\{[\s\S]*\}/);
+    if (obj) jsonStr = obj[0];
+  }
+  if (!jsonStr) {
+    throw new Error('成績データを画像から読み取れませんでした。写真がはっきり写っているか確認してください。');
+  }
+  try {
+    return JSON.parse(jsonStr);
+  } catch {
+    throw new Error('成績データの解析に失敗しました。写真を撮り直して再度お試しください。');
+  }
+}
+
+/* ── Step 2: generate LINE advice ── */
+async function generateAdvice(scores) {
+  const subjects = scores.subjects || {};
+  const lines = SUBJECTS
+    .filter(s => subjects[s] && subjects[s].deviation !== null)
+    .map(s => {
+      const d = subjects[s];
+      return `${s}: 偏差値${d.deviation}${d.score != null ? `（${d.score}点）` : ''}`;
+    });
+
+  if (lines.length === 0) throw new Error('偏差値データが見つかりませんでした。成績表が正しく写っているか確認してください。');
+
+  if (scores.total_deviation != null) {
+    lines.push(`5教科合計偏差値: ${scores.total_deviation}`);
+  }
+
+  const prompt =
+`あなたは中学生を担当する塾の先生です。
+添付の北辰テスト成績表の画像と以下の成績データをもとに、生徒にLINEで送るフィードバックメッセージを作ってください。
+
+【成績データ】
+${lines.join('\n')}
+
+【アドバイスの方針】
+各教科について、成績表の画像から正答率・大問番号・単元名を読み取り、以下の構成で書いてください。
+
+1. 正答率が高い（50%以上）のに間違えた問題を「必ず正解しておきたい問題」として具体的に指摘
+   - 大問番号・単元名・正答率（%の数値）を必ず明記する
+   - 解き直しや補強トレーニングを勧める
+2. 正答率が低い問題（50%未満）も拾って復習を促す
+3. 各教科の締めに、その教科で特に大事なことを一言アドバイス
+
+【文体の例（数学）】
+「課題として大問1-5の正答率70.2%の問題、計算問題(一次方程式)で間違えています。この問題は必ず正解しておきたい問題なので解き直しをしたり、補強問題をやったりしてできるようにしておきましょう！また正答率50.9%の箱ひげ図の問題も間違えていますので、箱ひげ図の復習もしっかりとしておきましょう！数学は大問1や正答率が高い問題を落とさないことが大事です。見直しをしっかりしたり、普段からテストを意識した勉強をしていきましょう！」
+
+【注意事項】
+- 画像から読み取れた具体的な数値（正答率○○%・大問番号）を必ず使う
+- 画像から読み取れない場合はその教科は偏差値ベースのアドバイスにする
+- 「！」を適度に使い励ます口調にする
+- LINEで送りやすいよう適切に改行を入れる
+- 絵文字は1教科に1〜2個程度に控える
+- データがある教科のみ書く
+
+【出力フォーマット（このテキストのみ出力）】
+━━━━━━━━━━━━━
+📊 北辰テスト 結果フィードバック
+━━━━━━━━━━━━━
+【教科名】偏差値XX
+（アドバイス文）
+
+━━━━━━━━━━━━━
+💪 総評
+（全体を通じた前向きな一言メッセージ）
+━━━━━━━━━━━━━
+
+前後の説明文や補足は不要です。フォーマット通りのテキストのみ出力してください。`;
+
+  const res = await callAPI(prompt, true, 2048);
+  return res.content[0].text.trim();
+}
+
+/* ── API call via local server ── */
+async function callAPI(prompt, withImages, maxTokens) {
+  const content = [];
+  if (withImages) {
+    images.forEach(img => {
+      content.push({
+        type: 'image',
+        source: { type: 'base64', media_type: img.type, data: img.base64 }
+      });
+    });
+  }
+  content.push({ type: 'text', text: prompt });
+
+  let res;
+  try {
+    res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, messages: [{ role: 'user', content }] })
+    });
+  } catch (networkErr) {
+    throw new Error('サーバーに接続できませんでした。しばらく待ってから再度お試しください。');
+  }
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    const msg  = body.error?.message || `APIエラー (HTTP ${res.status})`;
+    if (res.status === 401) throw new Error('APIキーが無効です。環境変数 ANTHROPIC_API_KEY を確認してください。');
+    if (res.status === 429) throw new Error('API利用制限に達しました。しばらく待ってから再試行してください。');
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
+/* ── Display ── */
+function displayResults(scores, msg) {
+  scoreGrid.innerHTML = '';
+  const subjects = scores.subjects || {};
+  SUBJECTS.forEach(s => {
+    const d = subjects[s];
+    if (!d || d.deviation == null) return;
+    const dev   = d.deviation;
+    const level = dev >= 60 ? 'high' : dev >= 50 ? 'mid' : 'low';
+    const chip  = document.createElement('div');
+    chip.className = `score-chip ${level}`;
+    chip.innerHTML = `
+      <div class="subj">${s}</div>
+      <div class="dev">${dev}</div>
+      <div class="pts">${d.score != null ? d.score + '点' : '―'}</div>
+    `;
+    scoreGrid.appendChild(chip);
+  });
+
+  resultText.textContent = msg;
+  resultCard.style.display = 'block';
+  setTimeout(() => resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+}
+
+/* ── Copy ── */
+copyBtn.addEventListener('click', async () => {
+  const text = resultText.textContent;
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    Object.assign(ta.style, { position: 'fixed', opacity: '0', top: '0', left: '0' });
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+  copyBtn.classList.add('copied');
+  copyLabel.textContent = 'コピーしました！';
+  setTimeout(() => {
+    copyBtn.classList.remove('copied');
+    copyLabel.textContent = 'LINEメッセージをコピー';
+  }, 2500);
+});
+
+/* ── Helpers ── */
+function setUI(loading) {
+  analyzeBtn.disabled = loading || images.length === 0;
+  statusArea.className = 'status' + (loading ? ' visible' : '');
+}
+function setStatus(msg) { statusText.textContent = msg; }
+function showError(el, msg) { el.textContent = msg; el.classList.add('visible'); }
+function hideError(el) { el.classList.remove('visible'); }
+</script>
+</body>
+</html>

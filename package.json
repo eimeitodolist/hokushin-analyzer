@@ -1,0 +1,16 @@
+{
+  "name": "hokushin-analyzer",
+  "version": "1.0.0",
+  "description": "北辰テスト成績分析サーバー",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "sharp": "^0.33.5"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

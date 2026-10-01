@@ -1,17 +1,25 @@
 'use strict';
 
-const express = require('express');
-const path    = require('path');
-const sharp   = require('sharp');
+const fs        = require('fs');
+const path      = require('path');
+const express   = require('express');
+const sharp     = require('sharp');
+const Anthropic = require('@anthropic-ai/sdk');
+
+// ローカル起動時は同じフォルダの .env から APIキーを読み込む（Render では環境変数を使用）
+const envPath = path.join(__dirname, '.env');
+if (fs.existsSync(envPath)) process.loadEnvFile(envPath);
+
+const MODEL = 'claude-sonnet-5-5';
+const MAX_IMAGE_DIMENSION = 1568;
+const JPEG_QUALITY = 85;
+const API_TIMEOUT_MS = 180000;
+const MAX_IMAGES = 4;
+
+const client = new Anthropic({ timeout: API_TIMEOUT_MS, maxRetries: 2 });
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
-app.use(express.static(path.join(__dirname)));
-
-const HARDCODED_API_KEY = 'sk-ant-api03-o4cGKf4D2amTrE5Ix-n3_s4JueiTHWGRmSDdu4OWjX4HGXxv0YoGvkSBynNI_BiW19E8XcwKqkHnZZJ3vxJVMA-_bsNjAAA';
-const MAX_IMAGE_DIMENSION = 1568;
-const JPEG_QUALITY = 85;
-const API_TIMEOUT_MS = 60000;
 
 const SYSTEM_PROMPT = `あなたは北辰テスト（株式会社北辰図書が実施する埼玉県最大の模擬試験）に精通した塾の先生です。
 以下の北辰テストに関する詳細情報を参照して回答してください。
@@ -67,85 +75,103 @@ E判定：合格可能性20%未満（要努力）
 ・志望校判定：登録した高校のA〜E判定が表示
 ・正答率が高い（50%以上）のに自分が間違えた問題＝最優先復習問題`;
 
-async function resizeImageIfNeeded(base64Data, mediaType) {
-  try {
-    const buffer = Buffer.from(base64Data, 'base64');
-    const metadata = await sharp(buffer).metadata();
+async function toApiImage(base64Data) {
+  // ブラウザ側で JPEG 化済みだが、念のためサイズを上限内に収める
+  const buffer = Buffer.from(base64Data, 'base64');
+  const resized = await sharp(buffer)
+    .rotate()
+    .resize(MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, { fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: JPEG_QUALITY })
+    .toBuffer();
+  return {
+    type: 'image',
+    source: { type: 'base64', media_type: 'image/jpeg', data: resized.toString('base64') },
+  };
+}
 
-    const needsResize = metadata.width > MAX_IMAGE_DIMENSION || metadata.height > MAX_IMAGE_DIMENSION;
-    const tooBig = buffer.length > 4 * 1024 * 1024;
-
-    if (!needsResize && !tooBig) return { data: base64Data, mediaType };
-
-    const resized = await sharp(buffer)
-      .resize(MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, { fit: 'inside', withoutEnlargement: true })
-      .jpeg({ quality: JPEG_QUALITY })
-      .toBuffer();
-
-    console.log(`画像リサイズ: ${metadata.width}x${metadata.height} → 最大${MAX_IMAGE_DIMENSION}px, ${(buffer.length / 1024).toFixed(0)}KB → ${(resized.length / 1024).toFixed(0)}KB`);
-    return { data: resized.toString('base64'), mediaType: 'image/jpeg' };
-  } catch (err) {
-    console.error('画像リサイズエラー (スキップ):', err.message);
-    return { data: base64Data, mediaType };
+function errorMessage(err) {
+  if (err instanceof Anthropic.AuthenticationError) {
+    return [401, 'APIキーが無効です。新しいAPIキーを .env（Renderの場合は Environment）に設定してください。'];
   }
+  if (err instanceof Anthropic.PermissionDeniedError) {
+    return [403, 'APIキーに権限がありません。Anthropic Console でキーの状態を確認してください。'];
+  }
+  if (err instanceof Anthropic.RateLimitError) {
+    return [429, 'API利用制限に達しました。しばらく待ってから再試行してください。'];
+  }
+  if (err instanceof Anthropic.BadRequestError) {
+    if (/credit balance/i.test(err.message)) {
+      return [400, 'Anthropic API のクレジット残高が不足しています。Console の Billing でチャージしてください。'];
+    }
+    return [400, '画像またはリクエストに問題があります: ' + err.message];
+  }
+  if (err instanceof Anthropic.APIConnectionTimeoutError) {
+    return [504, 'タイムアウトしました。写真の枚数を減らすか、再度お試しください。'];
+  }
+  if (err instanceof Anthropic.APIConnectionError) {
+    return [502, 'Anthropic API への接続に失敗しました。ネットワークを確認してください。'];
+  }
+  if (err instanceof Anthropic.APIError) {
+    return [err.status || 500, `APIエラー (${err.status}): ${err.message}`];
+  }
+  return [500, 'サーバーでエラーが発生しました: ' + err.message];
 }
 
-async function processRequestBody(body) {
-  if (!Array.isArray(body.messages)) return body;
-
-  const messages = await Promise.all(body.messages.map(async (message) => {
-    if (!Array.isArray(message.content)) return message;
-
-    const content = await Promise.all(message.content.map(async (block) => {
-      if (block.type !== 'image' || block.source?.type !== 'base64') return block;
-
-      const { data, mediaType } = await resizeImageIfNeeded(block.source.data, block.source.media_type);
-      return { ...block, source: { ...block.source, data, media_type: mediaType } };
-    }));
-
-    return { ...message, content };
-  }));
-
-  return { ...body, system: SYSTEM_PROMPT, messages };
-}
-
+// body: { prompt: string, images: string[] (base64 JPEG), maxTokens?: number }
 app.post('/api/analyze', async (req, res) => {
-  const apiKey = process.env.ANTHROPIC_API_KEY || HARDCODED_API_KEY;
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+  const { prompt, images = [], maxTokens = 8000 } = req.body || {};
+  if (typeof prompt !== 'string' || !prompt) {
+    return res.status(400).json({ error: { message: 'prompt がありません。' } });
+  }
+  if (!Array.isArray(images) || images.length > MAX_IMAGES) {
+    return res.status(400).json({ error: { message: `写真は最大${MAX_IMAGES}枚までです。` } });
+  }
 
   try {
-    const processedBody = await processRequestBody(req.body);
+    let imageBlocks;
+    try {
+      imageBlocks = await Promise.all(images.map(toApiImage));
+    } catch {
+      return res.status(400).json({ error: { message: '画像を読み込めませんでした。JPG または PNG の写真でお試しください。' } });
+    }
 
-    const upstream = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type':      'application/json',
-        'x-api-key':         apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify(processedBody),
-      signal: controller.signal,
+    const response = await client.beta.messages.create({
+      model: MODEL,
+      max_tokens: Math.min(Number(maxTokens) || 8000, 16000),
+      output_config: { effort: 'medium' },
+      betas: ['server-side-fallback-2026-07-01'],
+      fallbacks: 'default',
+      system: SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: [...imageBlocks, { type: 'text', text: prompt }] }],
     });
 
-    clearTimeout(timer);
-    const data = await upstream.json();
-    res.status(upstream.status).json(data);
+    if (response.stop_reason === 'refusal') {
+      return res.status(422).json({ error: { message: 'AIが回答を控えました。写真を変えて再度お試しください。' } });
+    }
+
+    const text = response.content
+      .filter(block => block.type === 'text')
+      .map(block => block.text)
+      .join('')
+      .trim();
+
+    if (!text) {
+      return res.status(502).json({ error: { message: 'AIから回答が得られませんでした。再度お試しください。' } });
+    }
+    res.json({ text, truncated: response.stop_reason === 'max_tokens' });
   } catch (err) {
-    clearTimeout(timer);
-    const message = err.name === 'AbortError'
-      ? 'タイムアウト（60秒）しました。再度お試しください。'
-      : 'Anthropic API への接続に失敗しました: ' + err.message;
-    res.status(500).json({ error: { message } });
+    console.error('分析エラー:', err);
+    const [status, message] = errorMessage(err);
+    res.status(status).json({ error: { message } });
   }
 });
 
+// 画面（HTML）だけを配信する。server.js や .env が外から見えないよう、フォルダ全体は公開しない
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'hokushin-analyzer.html')));
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`サーバー起動: http://localhost:${PORT}`);
   console.log('終了するには Ctrl+C を押してください。');
-  console.log('ANTHROPIC_API_KEY:', process.env.ANTHROPIC_API_KEY || '(未設定)');
+  console.log('ANTHROPIC_API_KEY:', process.env.ANTHROPIC_API_KEY ? '設定済み' : '★未設定（.env を作成してください）');
 });

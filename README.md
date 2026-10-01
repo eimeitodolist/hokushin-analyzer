@@ -11,12 +11,17 @@
 
 ## ローカルで起動する
 
+1. `.env.example` をコピーして `.env` という名前にし、APIキーを貼り付ける（`.env` はGitHubに上がりません）
+2. 次のコマンドで起動
+
 ```bash
 npm install
-ANTHROPIC_API_KEY=your_api_key node server.js
+npm start
 ```
 
 ブラウザで `http://localhost:3001` を開いてください。
+
+> **APIキーは絶対に server.js などのコードに直接書かないでください。** 公開リポジトリに載ったキーは自動的に無効化されます。
 
 ## Render にデプロイする手順
 
@@ -57,5 +62,5 @@ Renderのサービス設定画面 → **Environment** タブで追加:
 
 ## 必要なもの
 
-- [Anthropic APIキー](https://console.anthropic.com/)（Claude claude-sonnet-4-5 を使用）
+- [Anthropic APIキー](https://console.anthropic.com/)（Claude Sonnet 5.5 を使用）
 - Node.js 18以上（ローカル起動の場合）

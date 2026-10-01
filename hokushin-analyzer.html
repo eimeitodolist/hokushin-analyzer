@@ -323,9 +323,9 @@
 'use strict';
 
 const API_URL  = '/api/analyze';
-const MODEL    = 'claude-sonnet-4-5';
 const SUBJECTS = ['英語', '数学', '国語', '理科', '社会'];
 const MAX_IMGS = 4;
+const MAX_SIDE = 2000; // 送信前に縮小する長辺(px)
 
 /* ── DOM refs ── */
 const $ = id => document.getElementById(id);
@@ -379,18 +379,37 @@ function addFiles(files) {
     showError(uploadError, '画像ファイル（JPG / PNG など）を選択してください。');
     return;
   }
-  let loaded = 0;
-  toAdd.forEach(file => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      images.push({ base64: e.target.result.split(',')[1], type: file.type });
-      loaded++;
-      if (loaded === toAdd.length) {
-        renderThumbs();
-        refreshBtn();
-      }
+  analyzeBtn.disabled = true;
+  Promise.allSettled(toAdd.map(toJpeg)).then(results => {
+    let failed = 0;
+    results.forEach(r => {
+      if (r.status === 'fulfilled') images.push(r.value);
+      else failed++;
+    });
+    if (failed) {
+      showError(uploadError, `${failed}枚の写真を読み込めませんでした。JPG / PNG 形式で保存し直すか、カメラで撮影してください。`);
+    }
+    renderThumbs();
+    refreshBtn();
+  });
+}
+
+/* 写真をブラウザ内で JPEG に変換・縮小する（iPhone の HEIC 写真や大きな写真も送れるように） */
+function toJpeg(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, MAX_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.naturalWidth * scale);
+      canvas.height = Math.round(img.naturalHeight * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      resolve({ base64: canvas.toDataURL('image/jpeg', 0.88).split(',')[1], type: 'image/jpeg' });
     };
-    reader.readAsDataURL(file);
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('decode failed')); };
+    img.src = url;
   });
 }
 
@@ -483,8 +502,7 @@ async function extractScores() {
 }
 読み取れない場合はnullを入れてください。`;
 
-  const res = await callAPI(prompt, true, 2048);
-  const raw = res.content[0].text.trim();
+  const raw = (await callAPI(prompt, 4000)).text;
 
   let jsonStr = null;
   const codeBlock = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
@@ -508,7 +526,7 @@ async function extractScores() {
 async function generateAdvice(scores) {
   const subjects = scores.subjects || {};
   const lines = SUBJECTS
-    .filter(s => subjects[s] && subjects[s].deviation !== null)
+    .filter(s => subjects[s] && subjects[s].deviation != null)
     .map(s => {
       const d = subjects[s];
       return `${s}: 偏差値${d.deviation}${d.score != null ? `（${d.score}点）` : ''}`;
@@ -561,42 +579,27 @@ ${lines.join('\n')}
 
 前後の説明文や補足は不要です。フォーマット通りのテキストのみ出力してください。`;
 
-  const res = await callAPI(prompt, true, 2048);
-  return res.content[0].text.trim();
+  return (await callAPI(prompt, 8000)).text;
 }
 
 /* ── API call via local server ── */
-async function callAPI(prompt, withImages, maxTokens) {
-  const content = [];
-  if (withImages) {
-    images.forEach(img => {
-      content.push({
-        type: 'image',
-        source: { type: 'base64', media_type: img.type, data: img.base64 }
-      });
-    });
-  }
-  content.push({ type: 'text', text: prompt });
-
+async function callAPI(prompt, maxTokens) {
   let res;
   try {
     res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, messages: [{ role: 'user', content }] })
+      body: JSON.stringify({ prompt, images: images.map(img => img.base64), maxTokens })
     });
   } catch (networkErr) {
-    throw new Error('サーバーに接続できませんでした。しばらく待ってから再度お試しください。');
+    throw new Error('サーバーに接続できませんでした。サーバーが起動しているか確認し、しばらく待ってから再度お試しください。');
   }
 
+  const body = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    const msg  = body.error?.message || `APIエラー (HTTP ${res.status})`;
-    if (res.status === 401) throw new Error('APIキーが無効です。環境変数 ANTHROPIC_API_KEY を確認してください。');
-    if (res.status === 429) throw new Error('API利用制限に達しました。しばらく待ってから再試行してください。');
-    throw new Error(msg);
+    throw new Error(body.error?.message || `エラーが発生しました (HTTP ${res.status})`);
   }
-  return res.json();
+  return body;
 }
 
 /* ── Display ── */
@@ -610,11 +613,12 @@ function displayResults(scores, msg) {
     const level = dev >= 60 ? 'high' : dev >= 50 ? 'mid' : 'low';
     const chip  = document.createElement('div');
     chip.className = `score-chip ${level}`;
-    chip.innerHTML = `
-      <div class="subj">${s}</div>
-      <div class="dev">${dev}</div>
-      <div class="pts">${d.score != null ? d.score + '点' : '―'}</div>
-    `;
+    [['subj', s], ['dev', dev], ['pts', d.score != null ? d.score + '点' : '―']].forEach(([cls, text]) => {
+      const el = document.createElement('div');
+      el.className = cls;
+      el.textContent = text;
+      chip.appendChild(el);
+    });
     scoreGrid.appendChild(chip);
   });
 

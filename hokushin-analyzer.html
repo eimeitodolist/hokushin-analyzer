@@ -194,6 +194,14 @@
       margin-top: 12px;
       font-size: 14px;
     }
+    .pdf-row input {
+      width: 64px;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: center;
+    }
     .pdf-row select {
       padding: 8px 10px;
       border: 1px solid var(--border);
@@ -419,6 +427,13 @@
         <option value="4" selected>4ページ</option>
       </select>
     </div>
+    <div class="pdf-row">
+      <label for="pageStart">分析するページ</label>
+      <input type="number" id="pageStart" min="1" value="1" inputmode="numeric" />
+      <span>〜</span>
+      <input type="number" id="pageEnd" min="1" inputmode="numeric" />
+    </div>
+    <div class="upload-sub" style="margin-top:6px">表紙や成績一覧表などは除いて、個人成績票のページだけを指定してください。</div>
     <div class="pdf-info" id="pdfInfo"></div>
     <div class="error-box" id="pdfError"></div>
   </div>
@@ -507,6 +522,8 @@ const pdfLabel    = $('pdfLabel');
 const pdfInfo     = $('pdfInfo');
 const pdfError    = $('pdfError');
 const pagesPerStudent = $('pagesPerStudent');
+const pageStart     = $('pageStart');
+const pageEnd       = $('pageEnd');
 const batchCard     = $('batchCard');
 const batchList     = $('batchList');
 const batchProgress = $('batchProgress');
@@ -645,7 +662,7 @@ function renderThumbs() {
 }
 
 function refreshBtn() {
-  analyzeBtn.disabled = busy || (currentMode() === 'pdf' ? pdfPages.length === 0 : images.length === 0);
+  analyzeBtn.disabled = busy || (currentMode() === 'pdf' ? !pageRange() : images.length === 0);
 }
 
 /* ── PDF upload ── */
@@ -661,7 +678,8 @@ pdfInput.addEventListener('change', () => {
   if (pdfInput.files.length) loadPdf(pdfInput.files[0]);
   pdfInput.value = '';
 });
-pagesPerStudent.addEventListener('change', () => { students = []; renderPdfInfo(); });
+[pagesPerStudent, pageStart, pageEnd].forEach(el =>
+  el.addEventListener('change', () => { students = []; renderPdfInfo(); refreshBtn(); }));
 
 async function loadPdf(file) {
   hideError(pdfError);
@@ -690,6 +708,9 @@ async function loadPdf(file) {
       pages.push(await renderPdfPage(await pdf.getPage(i)));
     }
     pdfPages = pages;
+    pageStart.max = pageEnd.max = pages.length;
+    if (Number(pageStart.value) > pages.length) pageStart.value = 1;
+    pageEnd.value = pages.length;
     pdfLabel.textContent = `📑 ${file.name}（タップで選び直し）`;
   } catch {
     showError(pdfError, 'PDFを読み込めませんでした。ファイルが壊れていないか確認してください。');
@@ -713,29 +734,45 @@ async function renderPdfPage(page) {
   return { base64: canvas.toDataURL('image/jpeg', 0.88).split(',')[1], type: 'image/jpeg' };
 }
 
+/* 分析するページ範囲（1始まり）。入力が不正なら null */
+function pageRange() {
+  const start = Number(pageStart.value);
+  const end   = Number(pageEnd.value);
+  if (!Number.isInteger(start) || !Number.isInteger(end)) return null;
+  if (start < 1 || end > pdfPages.length || start > end) return null;
+  return [start, end];
+}
+
 function renderPdfInfo() {
+  pdfInfo.style.whiteSpace = 'pre-line';
   if (pdfPages.length === 0) { pdfInfo.textContent = ''; return; }
+  const range = pageRange();
+  if (!range) {
+    pdfInfo.textContent = `⚠️ 分析するページは 1〜${pdfPages.length} の範囲で、開始 ≦ 終了 になるよう指定してください。`;
+    return;
+  }
+  const [start, end] = range;
+  const total = end - start + 1;
   const per = Number(pagesPerStudent.value);
-  const count = Math.ceil(pdfPages.length / per);
   pdfInfo.innerHTML = '';
   const strong = document.createElement('strong');
-  strong.textContent = `全${pdfPages.length}ページ → ${count}人分`;
-  pdfInfo.append(strong, `として分析します（1人${per}ページずつ、先頭から順に区切ります）。`);
-  if (pdfPages.length % per !== 0) {
-    pdfInfo.append(`\n⚠️ ページ数が${per}で割り切れません。最後の人は${pdfPages.length % per}ページになります。`);
-    pdfInfo.style.whiteSpace = 'pre-line';
+  strong.textContent = `p.${start}〜${end}（${total}ページ）→ ${Math.ceil(total / per)}人分`;
+  pdfInfo.append(`全${pdfPages.length}ページのうち `, strong, `として分析します（1人${per}ページずつ区切ります）。`);
+  if (total % per !== 0) {
+    pdfInfo.append(`\n⚠️ ページ数が${per}で割り切れません。最後の人は${total % per}ページになります。ページ範囲を確認してください。`);
   }
 }
 
 function buildStudents() {
   const per = Number(pagesPerStudent.value);
+  const [start, end] = pageRange();
   const list = [];
-  for (let i = 0; i < pdfPages.length; i += per) {
-    const end = Math.min(i + per, pdfPages.length);
+  for (let i = start - 1; i < end; i += per) {
+    const groupEnd = Math.min(i + per, end);
     list.push({
       index: list.length + 1,
-      pages: per === 1 ? `p.${i + 1}` : `p.${i + 1}–${end}`,
-      images: pdfPages.slice(i, end),
+      pages: per === 1 ? `p.${i + 1}` : `p.${i + 1}–${groupEnd}`,
+      images: pdfPages.slice(i, groupEnd),
       scores: null, msg: null, error: null,
     });
   }
@@ -774,7 +811,7 @@ analyzeBtn.addEventListener('click', async () => {
 
 /* ── PDF: 複数人をまとめて分析 ── */
 async function analyzeBatch() {
-  if (pdfPages.length === 0) return;
+  if (!pageRange()) return;
   // ページ区切りが同じなら読み取り済みの成績を使い回し、宛先だけ変えて作り直せるようにする
   if (students.length === 0) students = buildStudents();
   const audience = currentAudience();
@@ -1125,7 +1162,7 @@ function setUI(loading) {
   busy = loading;
   refreshBtn();
   document.querySelectorAll('input[name="mode"]').forEach(r => { r.disabled = loading; });
-  pagesPerStudent.disabled = loading;
+  pagesPerStudent.disabled = pageStart.disabled = pageEnd.disabled = loading;
   statusArea.className = 'status' + (loading ? ' visible' : '');
 }
 function setStatus(msg) { statusText.textContent = msg; }

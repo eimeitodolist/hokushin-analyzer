@@ -158,6 +158,30 @@
     }
     .camera-btn:hover { background: var(--purple-light); border-color: var(--purple); }
 
+    /* ── Audience toggle ── */
+    .audience-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .audience-toggle input { display: none; }
+    .audience-toggle label {
+      padding: 12px 8px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background .2s, border-color .2s, color .2s;
+    }
+    .audience-toggle input:checked + label {
+      border-color: var(--purple);
+      background: var(--purple-light);
+      color: #4c1d95;
+    }
+
     /* ── Analyze button ── */
     .analyze-btn {
       width: 100%;
@@ -295,6 +319,17 @@
     <div class="error-box" id="uploadError"></div>
   </div>
 
+  <!-- Audience -->
+  <div class="card">
+    <div class="card-title">✉️ メッセージの宛先</div>
+    <div class="audience-toggle">
+      <input type="radio" name="audience" id="audStudent" value="student" checked />
+      <label for="audStudent">🧑‍🎓 生徒向け</label>
+      <input type="radio" name="audience" id="audParent" value="parent" />
+      <label for="audParent">👪 保護者様向け</label>
+    </div>
+  </div>
+
   <!-- Analyze -->
   <button class="analyze-btn" id="analyzeBtn" disabled>🔍 成績を分析する</button>
 
@@ -347,6 +382,7 @@ const uploadError = $('uploadError');
 const apiError    = $('apiError');
 
 let images = []; // [{base64: string, type: string}, ...]
+let cachedScores = null; // 同じ写真で宛先だけ変えたときは読み取りを省略する
 
 /* ── Upload zone ── */
 uploadZone.addEventListener('click', () => fileInput.click());
@@ -389,6 +425,7 @@ function addFiles(files) {
     if (failed) {
       showError(uploadError, `${failed}枚の写真を読み込めませんでした。JPG / PNG 形式で保存し直すか、カメラで撮影してください。`);
     }
+    cachedScores = null;
     renderThumbs();
     refreshBtn();
   });
@@ -415,6 +452,7 @@ function toJpeg(file) {
 
 function removeImage(index) {
   images.splice(index, 1);
+  cachedScores = null;
   renderThumbs();
   refreshBtn();
 }
@@ -471,11 +509,17 @@ analyzeBtn.addEventListener('click', async () => {
   resultCard.style.display = 'none';
 
   try {
-    setStatus('📸 成績表を読み取っています…');
-    const scores = await extractScores();
+    if (!cachedScores) {
+      setStatus('📸 成績表を読み取っています…');
+      cachedScores = await extractScores();
+    }
+    const scores = cachedScores;
 
-    setStatus('✍️ フィードバックを生成しています…');
-    const msg = await generateAdvice(scores);
+    const audience = document.querySelector('input[name="audience"]:checked').value;
+    setStatus(audience === 'parent'
+      ? '✍️ 保護者様向けメッセージを作成しています…'
+      : '✍️ フィードバックを生成しています…');
+    const msg = await generateAdvice(scores, audience);
 
     displayResults(scores, msg);
   } catch (err) {
@@ -523,7 +567,7 @@ async function extractScores() {
 }
 
 /* ── Step 2: generate LINE advice ── */
-async function generateAdvice(scores) {
+async function generateAdvice(scores, audience) {
   const subjects = scores.subjects || {};
   const lines = SUBJECTS
     .filter(s => subjects[s] && subjects[s].deviation != null)
@@ -538,7 +582,12 @@ async function generateAdvice(scores) {
     lines.push(`5教科合計偏差値: ${scores.total_deviation}`);
   }
 
-  const prompt =
+  const prompt = audience === 'parent' ? parentPrompt(lines) : studentPrompt(lines);
+  return (await callAPI(prompt, 8000)).text;
+}
+
+function studentPrompt(lines) {
+  return (
 `あなたは中学生を担当する塾の先生です。
 添付の北辰テスト成績表の画像と以下の成績データをもとに、生徒にLINEで送るフィードバックメッセージを作ってください。
 
@@ -577,9 +626,47 @@ ${lines.join('\n')}
 （全体を通じた前向きな一言メッセージ）
 ━━━━━━━━━━━━━
 
-前後の説明文や補足は不要です。フォーマット通りのテキストのみ出力してください。`;
+前後の説明文や補足は不要です。フォーマット通りのテキストのみ出力してください。`);
+}
 
-  return (await callAPI(prompt, 8000)).text;
+function parentPrompt(lines) {
+  return (
+`あなたは中学生を担当する塾の先生です。
+添付の北辰テスト成績表の画像と以下の成績データをもとに、生徒の保護者様にLINEで送る結果報告のメッセージを作ってください。
+
+【成績データ】
+${lines.join('\n')}
+
+【メッセージの方針】
+- 丁寧な敬語（です・ます調、尊敬語・謙譲語）で、温かみのある文章にする
+- 生徒の頑張りや良かった点を最初に具体的に伝え、保護者様が安心して読めるようにする
+- 課題は責める言い方をせず、「次回に向けて塾でこのように取り組んでまいります」という前向きな書き方にする
+- 各教科について、成績表の画像から正答率・大問番号・単元名が読み取れれば、正答率が高い（50%以上）のに間違えた問題を中心に、具体的な数値を交えて簡潔に伝える
+- 画像から読み取れない教科は偏差値をもとに書く
+- 志望校判定が画像から読み取れる場合は、総評で触れる（不安をあおらない表現にする）
+- 家庭での学習方法やサポートのお願いは書かない
+- 生徒の名前は書かず「〇〇さん」と表記する（先生が送信前に書き換えます）
+- 専門用語は避け、保護者様に分かりやすい言葉にする
+- 絵文字は使わないか、使っても全体で1〜2個までにする
+- LINEで読みやすいよう適切に改行を入れる
+- データがある教科のみ書く
+
+【出力フォーマット（このテキストのみ出力）】
+いつもお世話になっております。
+先日の北辰テストの結果についてご報告いたします。
+
+【5教科】偏差値XX
+（全体の結果についての短い報告）
+
+【教科名】偏差値XX
+（その教科の良かった点・今後の課題を2〜3文で）
+
+【総評】
+（〇〇さんの頑張りを認め、次回に向けた前向きなメッセージ）
+
+今後とも〇〇さんの成長をしっかりと支えてまいりますので、どうぞよろしくお願いいたします。
+
+前後の説明文や補足は不要です。フォーマット通りのテキストのみ出力してください。`);
 }
 
 /* ── API call via local server ── */

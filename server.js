@@ -169,6 +169,10 @@ app.post('/api/analyze', async (req, res) => {
 // 画面（HTML）だけを配信する。server.js や .env が外から見えないよう、フォルダ全体は公開しない
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'hokushin-analyzer.html')));
 
+// PDF をブラウザで画像化するための pdf.js
+app.get('/vendor/pdf.min.js', (req, res) => res.sendFile(require.resolve('pdfjs-dist/build/pdf.min.js')));
+app.get('/vendor/pdf.worker.min.js', (req, res) => res.sendFile(require.resolve('pdfjs-dist/build/pdf.worker.min.js')));
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`サーバー起動: http://localhost:${PORT}`);

@@ -158,14 +158,14 @@
     }
     .camera-btn:hover { background: var(--purple-light); border-color: var(--purple); }
 
-    /* ── Audience toggle ── */
-    .audience-toggle {
+    /* ── Segmented toggle（入力方法・宛先） ── */
+    .seg-toggle {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
     }
-    .audience-toggle input { display: none; }
-    .audience-toggle label {
+    .seg-toggle input { display: none; }
+    .seg-toggle label {
       padding: 12px 8px;
       border: 2px solid var(--border);
       border-radius: 10px;
@@ -176,10 +176,31 @@
       cursor: pointer;
       transition: background .2s, border-color .2s, color .2s;
     }
-    .audience-toggle input:checked + label {
+    .seg-toggle input:checked + label {
       border-color: var(--purple);
       background: var(--purple-light);
       color: #4c1d95;
+    }
+
+    /* ── PDF ── */
+    #pdfCard { display: none; }
+    #pdfInput { display: none; }
+    .pdf-info { font-size: 13px; color: var(--muted); margin-top: 10px; line-height: 1.6; }
+    .pdf-info strong { color: var(--text); }
+    .pdf-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+    .pdf-row select {
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      background: #fff;
+      color: var(--text);
     }
 
     /* ── Analyze button ── */
@@ -285,7 +306,57 @@
     .copy-btn:active { transform: translateY(0); }
     .copy-btn.copied { background: var(--green-dark); }
 
-    #resultCard { display: none; }
+    #resultCard, #batchCard { display: none; }
+
+    /* ── Batch (PDF) results ── */
+    .batch-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .batch-progress { font-size: 13px; color: var(--muted); }
+    .copy-all-btn {
+      padding: 8px 12px;
+      background: #fff;
+      color: var(--green-dark);
+      border: 2px solid var(--green-line);
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .student-item {
+      border-top: 1px solid var(--border);
+      margin-top: 16px;
+      padding-top: 16px;
+    }
+    .student-title {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .student-state { font-size: 12px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+    .student-state.done  { color: var(--emerald); }
+    .student-state.error { color: var(--red); }
+    .retry-btn {
+      margin-top: 8px;
+      padding: 10px 14px;
+      background: #fff;
+      color: var(--purple);
+      border: 2px solid #c4b5fd;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
 
     @media (max-width: 360px) {
       .score-grid { grid-template-columns: repeat(3, 1fr); }
@@ -301,8 +372,19 @@
 
 <div class="container">
 
-  <!-- Upload -->
+  <!-- Mode -->
   <div class="card">
+    <div class="card-title">📥 読み込み方法</div>
+    <div class="seg-toggle">
+      <input type="radio" name="mode" id="modePhoto" value="photo" checked />
+      <label for="modePhoto">📷 写真（1人分）</label>
+      <input type="radio" name="mode" id="modePdf" value="pdf" />
+      <label for="modePdf">📑 PDF（複数人）</label>
+    </div>
+  </div>
+
+  <!-- Upload -->
+  <div class="card" id="photoCard">
     <div class="card-title">📷 成績表の写真（最大4枚）</div>
     <div class="upload-zone" id="uploadZone">
       <div class="upload-icon">📄</div>
@@ -319,10 +401,32 @@
     <div class="error-box" id="uploadError"></div>
   </div>
 
+  <!-- PDF upload -->
+  <div class="card" id="pdfCard">
+    <div class="card-title">📑 成績表のPDF（複数人分）</div>
+    <div class="upload-zone" id="pdfZone">
+      <div class="upload-icon">📑</div>
+      <div class="upload-label" id="pdfLabel">ここをタップしてPDFを選択</div>
+      <div class="upload-sub">ドラッグ＆ドロップも可 ／ 最大100ページ</div>
+    </div>
+    <input type="file" id="pdfInput" accept="application/pdf,.pdf" />
+    <div class="pdf-row">
+      <label for="pagesPerStudent">1人あたりのページ数</label>
+      <select id="pagesPerStudent">
+        <option value="1">1ページ</option>
+        <option value="2">2ページ</option>
+        <option value="3">3ページ</option>
+        <option value="4">4ページ</option>
+      </select>
+    </div>
+    <div class="pdf-info" id="pdfInfo"></div>
+    <div class="error-box" id="pdfError"></div>
+  </div>
+
   <!-- Audience -->
   <div class="card">
     <div class="card-title">✉️ メッセージの宛先</div>
-    <div class="audience-toggle">
+    <div class="seg-toggle">
       <input type="radio" name="audience" id="audStudent" value="student" checked />
       <label for="audStudent">🧑‍🎓 生徒向け</label>
       <input type="radio" name="audience" id="audParent" value="parent" />
@@ -352,8 +456,19 @@
     </button>
   </div>
 
+  <!-- Batch result -->
+  <div class="card" id="batchCard">
+    <div class="batch-head">
+      <div class="card-title" style="margin-bottom:0">📊 分析結果</div>
+      <button class="copy-all-btn" id="copyAllBtn">全員分コピー</button>
+    </div>
+    <div class="batch-progress" id="batchProgress"></div>
+    <div id="batchList"></div>
+  </div>
+
 </div><!-- /container -->
 
+<script src="/vendor/pdf.min.js"></script>
 <script>
 'use strict';
 
@@ -361,6 +476,10 @@ const API_URL  = '/api/analyze';
 const SUBJECTS = ['英語', '数学', '国語', '理科', '社会'];
 const MAX_IMGS = 4;
 const MAX_SIDE = 2000; // 送信前に縮小する長辺(px)
+const MAX_PDF_PAGES = 100;
+const CONCURRENCY   = 2; // PDF で同時に分析する人数
+
+if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = '/vendor/pdf.worker.min.js';
 
 /* ── DOM refs ── */
 const $ = id => document.getElementById(id);
@@ -380,9 +499,38 @@ const copyBtn     = $('copyBtn');
 const copyLabel   = $('copyLabel');
 const uploadError = $('uploadError');
 const apiError    = $('apiError');
+const photoCard   = $('photoCard');
+const pdfCard     = $('pdfCard');
+const pdfZone     = $('pdfZone');
+const pdfInput    = $('pdfInput');
+const pdfLabel    = $('pdfLabel');
+const pdfInfo     = $('pdfInfo');
+const pdfError    = $('pdfError');
+const pagesPerStudent = $('pagesPerStudent');
+const batchCard     = $('batchCard');
+const batchList     = $('batchList');
+const batchProgress = $('batchProgress');
+const copyAllBtn    = $('copyAllBtn');
 
 let images = []; // [{base64: string, type: string}, ...]
 let cachedScores = null; // 同じ写真で宛先だけ変えたときは読み取りを省略する
+let pdfPages = [];       // PDF 各ページを JPEG 化したもの [{base64, type}, ...]
+let students = [];       // [{index, pages, images, scores, msg, error}, ...]
+let busy = false;
+
+const currentMode = () => document.querySelector('input[name="mode"]:checked').value;
+const currentAudience = () => document.querySelector('input[name="audience"]:checked').value;
+
+/* ── Mode ── */
+document.querySelectorAll('input[name="mode"]').forEach(r => r.addEventListener('change', () => {
+  const pdf = currentMode() === 'pdf';
+  photoCard.style.display = pdf ? 'none' : '';
+  pdfCard.style.display   = pdf ? 'block' : 'none';
+  resultCard.style.display = 'none';
+  batchCard.style.display  = 'none';
+  hideError(apiError);
+  refreshBtn();
+}));
 
 /* ── Upload zone ── */
 uploadZone.addEventListener('click', () => fileInput.click());
@@ -497,11 +645,106 @@ function renderThumbs() {
 }
 
 function refreshBtn() {
-  analyzeBtn.disabled = images.length === 0;
+  analyzeBtn.disabled = busy || (currentMode() === 'pdf' ? pdfPages.length === 0 : images.length === 0);
+}
+
+/* ── PDF upload ── */
+pdfZone.addEventListener('click', () => { if (!busy) pdfInput.click(); });
+pdfZone.addEventListener('dragover', e => { e.preventDefault(); pdfZone.classList.add('drag-over'); });
+pdfZone.addEventListener('dragleave', () => pdfZone.classList.remove('drag-over'));
+pdfZone.addEventListener('drop', e => {
+  e.preventDefault();
+  pdfZone.classList.remove('drag-over');
+  if (!busy && e.dataTransfer.files.length) loadPdf(e.dataTransfer.files[0]);
+});
+pdfInput.addEventListener('change', () => {
+  if (pdfInput.files.length) loadPdf(pdfInput.files[0]);
+  pdfInput.value = '';
+});
+pagesPerStudent.addEventListener('change', () => { students = []; renderPdfInfo(); });
+
+async function loadPdf(file) {
+  hideError(pdfError);
+  if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') {
+    showError(pdfError, 'PDFファイルを選択してください。');
+    return;
+  }
+  if (!window.pdfjsLib) {
+    showError(pdfError, 'PDF読み込み機能を準備できませんでした。ページを再読み込みしてください。');
+    return;
+  }
+  pdfPages = [];
+  students = [];
+  renderPdfInfo();
+  busy = true;
+  refreshBtn();
+  try {
+    const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+    if (pdf.numPages > MAX_PDF_PAGES) {
+      showError(pdfError, `PDFは最大${MAX_PDF_PAGES}ページまでです（このPDFは${pdf.numPages}ページ）。分割してから読み込んでください。`);
+      return;
+    }
+    const pages = [];
+    for (let i = 1; i <= pdf.numPages; i++) {
+      pdfInfo.textContent = `PDFを読み込んでいます…（${i} / ${pdf.numPages}ページ）`;
+      pages.push(await renderPdfPage(await pdf.getPage(i)));
+    }
+    pdfPages = pages;
+    pdfLabel.textContent = `📑 ${file.name}（タップで選び直し）`;
+  } catch {
+    showError(pdfError, 'PDFを読み込めませんでした。ファイルが壊れていないか確認してください。');
+  } finally {
+    busy = false;
+    renderPdfInfo();
+    refreshBtn();
+  }
+}
+
+async function renderPdfPage(page) {
+  const base = page.getViewport({ scale: 1 });
+  const viewport = page.getViewport({ scale: MAX_SIDE / Math.max(base.width, base.height) });
+  const canvas = document.createElement('canvas');
+  canvas.width  = Math.round(viewport.width);
+  canvas.height = Math.round(viewport.height);
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#fff'; // 透明部分が JPEG で黒くならないように
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  await page.render({ canvasContext: ctx, viewport }).promise;
+  return { base64: canvas.toDataURL('image/jpeg', 0.88).split(',')[1], type: 'image/jpeg' };
+}
+
+function renderPdfInfo() {
+  if (pdfPages.length === 0) { pdfInfo.textContent = ''; return; }
+  const per = Number(pagesPerStudent.value);
+  const count = Math.ceil(pdfPages.length / per);
+  pdfInfo.innerHTML = '';
+  const strong = document.createElement('strong');
+  strong.textContent = `全${pdfPages.length}ページ → ${count}人分`;
+  pdfInfo.append(strong, `として分析します（1人${per}ページずつ、先頭から順に区切ります）。`);
+  if (pdfPages.length % per !== 0) {
+    pdfInfo.append(`\n⚠️ ページ数が${per}で割り切れません。最後の人は${pdfPages.length % per}ページになります。`);
+    pdfInfo.style.whiteSpace = 'pre-line';
+  }
+}
+
+function buildStudents() {
+  const per = Number(pagesPerStudent.value);
+  const list = [];
+  for (let i = 0; i < pdfPages.length; i += per) {
+    const end = Math.min(i + per, pdfPages.length);
+    list.push({
+      index: list.length + 1,
+      pages: per === 1 ? `p.${i + 1}` : `p.${i + 1}–${end}`,
+      images: pdfPages.slice(i, end),
+      scores: null, msg: null, error: null,
+    });
+  }
+  return list;
 }
 
 /* ── Analyze ── */
 analyzeBtn.addEventListener('click', async () => {
+  if (currentMode() === 'pdf') return analyzeBatch();
   if (images.length === 0) return;
 
   setUI(true);
@@ -511,15 +754,15 @@ analyzeBtn.addEventListener('click', async () => {
   try {
     if (!cachedScores) {
       setStatus('📸 成績表を読み取っています…');
-      cachedScores = await extractScores();
+      cachedScores = await extractScores(images);
     }
     const scores = cachedScores;
 
-    const audience = document.querySelector('input[name="audience"]:checked').value;
+    const audience = currentAudience();
     setStatus(audience === 'parent'
       ? '✍️ 保護者様向けメッセージを作成しています…'
       : '✍️ フィードバックを生成しています…');
-    const msg = await generateAdvice(scores, audience);
+    const msg = await generateAdvice(scores, audience, images);
 
     displayResults(scores, msg);
   } catch (err) {
@@ -529,12 +772,126 @@ analyzeBtn.addEventListener('click', async () => {
   }
 });
 
+/* ── PDF: 複数人をまとめて分析 ── */
+async function analyzeBatch() {
+  if (pdfPages.length === 0) return;
+  // ページ区切りが同じなら読み取り済みの成績を使い回し、宛先だけ変えて作り直せるようにする
+  if (students.length === 0) students = buildStudents();
+  const audience = currentAudience();
+  students.forEach(st => { st.msg = null; st.error = null; });
+
+  setUI(true);
+  hideError(apiError);
+  resultCard.style.display = 'none';
+  setStatus(`✍️ ${students.length}人分を分析しています…（数分かかる場合があります）`);
+  renderBatch();
+  batchCard.style.display = 'block';
+
+  const queue = students.slice();
+  const worker = async () => {
+    while (queue.length) await processStudent(queue.shift(), audience);
+  };
+  await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+
+  setUI(false);
+}
+
+async function processStudent(st, audience) {
+  st.state = st.scores ? '✍️ 作成中…' : '📸 読み取り中…';
+  st.error = null;
+  updateStudent(st);
+  try {
+    if (!st.scores) {
+      st.scores = await extractScores(st.images);
+      st.state = '✍️ 作成中…';
+      updateStudent(st);
+    }
+    st.msg = await generateAdvice(st.scores, audience, st.images);
+  } catch (err) {
+    st.error = err.message;
+  }
+  st.state = null;
+  updateStudent(st);
+}
+
+function renderBatch() {
+  batchList.innerHTML = '';
+  students.forEach(st => {
+    st.el = document.createElement('div');
+    st.el.className = 'student-item';
+    batchList.appendChild(st.el);
+    updateStudent(st);
+  });
+}
+
+function updateStudent(st) {
+  const el = st.el;
+  el.innerHTML = '';
+
+  const title = document.createElement('div');
+  title.className = 'student-title';
+  const name = document.createElement('span');
+  const readName = st.scores && st.scores.student_name;
+  name.textContent = `${st.index}人目（${st.pages}）${readName ? ' ' + readName : ''}`;
+  const state = document.createElement('span');
+  state.className = 'student-state' + (st.msg ? ' done' : st.error ? ' error' : '');
+  state.textContent = st.msg ? '✅ 完了' : st.error ? '⚠️ エラー' : (st.state || '⏳ 待機中');
+  title.append(name, state);
+  el.appendChild(title);
+
+  if (st.scores) {
+    const grid = document.createElement('div');
+    grid.className = 'score-grid';
+    renderScoreGrid(grid, st.scores);
+    el.appendChild(grid);
+  }
+  if (st.msg) {
+    const text = document.createElement('div');
+    text.className = 'result-text';
+    text.textContent = st.msg;
+    const btn = makeCopyButton(() => st.msg);
+    el.append(text, btn);
+  }
+  if (st.error) {
+    const err = document.createElement('div');
+    err.className = 'error-box visible';
+    err.textContent = st.error;
+    const retry = document.createElement('button');
+    retry.className = 'retry-btn';
+    retry.textContent = '🔄 この人だけ再試行';
+    retry.addEventListener('click', async () => {
+      retry.disabled = true;
+      await processStudent(st, currentAudience());
+      updateProgress();
+    });
+    el.append(err, retry);
+  }
+  updateProgress();
+}
+
+function updateProgress() {
+  const done = students.filter(st => st.msg).length;
+  const failed = students.filter(st => st.error).length;
+  batchProgress.textContent = `${done} / ${students.length}人 完了` + (failed ? `・エラー${failed}人` : '');
+}
+
+copyAllBtn.addEventListener('click', async () => {
+  const text = students
+    .filter(st => st.msg)
+    .map(st => `■ ${st.index}人目（${st.pages}）${st.scores?.student_name ? ' ' + st.scores.student_name : ''}\n${st.msg}`)
+    .join('\n\n');
+  if (!text) return;
+  await copyText(text);
+  flashCopied(copyAllBtn, copyAllBtn, '全員分コピー');
+});
+
 /* ── Step 1: extract scores ── */
-async function extractScores() {
+async function extractScores(imgs) {
   const prompt =
 `この北辰テストの成績表から以下の情報をJSON形式で抽出してください。
 必ずJSON形式のみで返答し、余分なテキストは不要です。
 {
+  "student_name": "生徒の氏名",
   "subjects": {
     "英語": {"score": 点数, "deviation": 偏差値},
     "数学": {"score": 点数, "deviation": 偏差値},
@@ -546,7 +903,7 @@ async function extractScores() {
 }
 読み取れない場合はnullを入れてください。`;
 
-  const raw = (await callAPI(prompt, 4000)).text;
+  const raw = (await callAPI(prompt, 4000, imgs)).text;
 
   let jsonStr = null;
   const codeBlock = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
@@ -567,7 +924,7 @@ async function extractScores() {
 }
 
 /* ── Step 2: generate LINE advice ── */
-async function generateAdvice(scores, audience) {
+async function generateAdvice(scores, audience, imgs) {
   const subjects = scores.subjects || {};
   const lines = SUBJECTS
     .filter(s => subjects[s] && subjects[s].deviation != null)
@@ -583,7 +940,7 @@ async function generateAdvice(scores, audience) {
   }
 
   const prompt = audience === 'parent' ? parentPrompt(lines) : studentPrompt(lines);
-  return (await callAPI(prompt, 8000)).text;
+  return (await callAPI(prompt, 8000, imgs)).text;
 }
 
 function studentPrompt(lines) {
@@ -670,13 +1027,13 @@ ${lines.join('\n')}
 }
 
 /* ── API call via local server ── */
-async function callAPI(prompt, maxTokens) {
+async function callAPI(prompt, maxTokens, imgs) {
   let res;
   try {
     res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, images: images.map(img => img.base64), maxTokens })
+      body: JSON.stringify({ prompt, images: imgs.map(img => img.base64), maxTokens })
     });
   } catch (networkErr) {
     throw new Error('サーバーに接続できませんでした。サーバーが起動しているか確認し、しばらく待ってから再度お試しください。');
@@ -691,7 +1048,14 @@ async function callAPI(prompt, maxTokens) {
 
 /* ── Display ── */
 function displayResults(scores, msg) {
-  scoreGrid.innerHTML = '';
+  renderScoreGrid(scoreGrid, scores);
+  resultText.textContent = msg;
+  resultCard.style.display = 'block';
+  setTimeout(() => resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+}
+
+function renderScoreGrid(grid, scores) {
+  grid.innerHTML = '';
   const subjects = scores.subjects || {};
   SUBJECTS.forEach(s => {
     const d = subjects[s];
@@ -706,18 +1070,43 @@ function displayResults(scores, msg) {
       el.textContent = text;
       chip.appendChild(el);
     });
-    scoreGrid.appendChild(chip);
+    grid.appendChild(chip);
   });
-
-  resultText.textContent = msg;
-  resultCard.style.display = 'block';
-  setTimeout(() => resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
 }
 
 /* ── Copy ── */
 copyBtn.addEventListener('click', async () => {
   const text = resultText.textContent;
   if (!text) return;
+  await copyText(text);
+  flashCopied(copyBtn, copyLabel, 'LINEメッセージをコピー');
+});
+
+function makeCopyButton(getText) {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  const icon = document.createElement('span');
+  icon.textContent = '📋';
+  const label = document.createElement('span');
+  label.textContent = 'LINEメッセージをコピー';
+  btn.append(icon, label);
+  btn.addEventListener('click', async () => {
+    await copyText(getText());
+    flashCopied(btn, label, 'LINEメッセージをコピー');
+  });
+  return btn;
+}
+
+function flashCopied(btn, label, original) {
+  btn.classList.add('copied');
+  label.textContent = 'コピーしました！';
+  setTimeout(() => {
+    btn.classList.remove('copied');
+    label.textContent = original;
+  }, 2500);
+}
+
+async function copyText(text) {
   try {
     await navigator.clipboard.writeText(text);
   } catch {
@@ -729,17 +1118,14 @@ copyBtn.addEventListener('click', async () => {
     document.execCommand('copy');
     document.body.removeChild(ta);
   }
-  copyBtn.classList.add('copied');
-  copyLabel.textContent = 'コピーしました！';
-  setTimeout(() => {
-    copyBtn.classList.remove('copied');
-    copyLabel.textContent = 'LINEメッセージをコピー';
-  }, 2500);
-});
+}
 
 /* ── Helpers ── */
 function setUI(loading) {
-  analyzeBtn.disabled = loading || images.length === 0;
+  busy = loading;
+  refreshBtn();
+  document.querySelectorAll('input[name="mode"]').forEach(r => { r.disabled = loading; });
+  pagesPerStudent.disabled = loading;
   statusArea.className = 'status' + (loading ? ' visible' : '');
 }
 function setStatus(msg) { statusText.textContent = msg; }

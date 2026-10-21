@@ -348,6 +348,15 @@
     .teacher-row input { width: auto; flex: 1; min-width: 120px; text-align: left; }
     .char-count { font-size: 12px; color: var(--muted); text-align: right; margin-top: 4px; }
 
+    /* ── 補強プリント ── */
+    .sheet-box { margin-top: 12px; font-size: 13px; }
+    .sheet-box summary { cursor: pointer; color: var(--purple); font-weight: 600; line-height: 1.6; }
+    .sheet-unit { margin-top: 10px; font-weight: 700; }
+    .sheet-reason { font-size: 12px; color: var(--muted); }
+    .sheet-q { margin-top: 6px; white-space: pre-wrap; line-height: 1.6; }
+    .sheet-option { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 14px; cursor: pointer; }
+    .sheet-option input { width: 18px; height: 18px; }
+
     /* ── 呼び名（名前＋君/さん） ── */
     .name-row {
       display: flex;
@@ -536,6 +545,11 @@
       <input type="text" id="teacherName" placeholder="例：飯塚" />
     </div>
     <div class="upload-sub" style="margin-top:6px">保護者様向けの冒頭「お世話になっています。○○です！」に入ります（このブラウザに保存されます）。</div>
+    <label class="sheet-option">
+      <input type="checkbox" id="makeSheet" />
+      <span>📝 一人ひとりの弱点補強プリントも作る</span>
+    </label>
+    <div class="upload-sub" style="margin-top:4px">苦手単元2〜3つ×3問のオリジナル問題（解答・解説つき）。1人あたりの時間と料金が増えます。</div>
   </div>
 
   <!-- Analyze -->
@@ -561,7 +575,10 @@
   <div class="card" id="batchCard">
     <div class="batch-head">
       <div class="card-title" style="margin-bottom:0">📊 分析結果</div>
-      <button class="copy-all-btn" id="copyAllBtn">全員分コピー</button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+        <button class="copy-all-btn" id="printAllBtn" style="display:none">🖨 全員分のプリント</button>
+        <button class="copy-all-btn" id="copyAllBtn">全員分コピー</button>
+      </div>
     </div>
     <div class="batch-progress" id="batchProgress"></div>
     <div id="batchList"></div>
@@ -627,6 +644,8 @@ const problemMapText = $('problemMapText');
 const problemClear  = $('problemClear');
 const problemError  = $('problemError');
 const teacherName   = $('teacherName');
+const makeSheet     = $('makeSheet');
+const printAllBtn   = $('printAllBtn');
 
 let images = []; // [{base64: string, type: string}, ...]
 let cachedScores = null; // 同じ写真で宛先だけ変えたときは読み取りを省略する
@@ -649,6 +668,8 @@ function rerenderResults() {
   if (lastSingle && resultCard.style.display === 'block') displayResults(lastSingle, false);
   students.forEach(st => { if (st.el) updateStudent(st); });
 }
+
+printAllBtn.addEventListener('click', () => openSheetPrint(students.filter(st => st.sheet)));
 
 /* ── 問題用紙 ── */
 problemZone.addEventListener('click', () => { if (!busy) problemInput.click(); });
@@ -1037,8 +1058,16 @@ analyzeBtn.addEventListener('click', async () => {
       ? '✍️ 保護者様向けメッセージを作成しています…'
       : '✍️ フィードバックを生成しています…');
     const msg = await generateAdvice(scores, audience, images, problemMap);
-
-    displayResults({ scores, msg, parent: audience === 'parent' });
+    const st = { scores, msg, parent: audience === 'parent', images: images.slice() };
+    if (lastSingle && lastSingle.scores === scores) {
+      // 同じ写真なら、直した呼び名と作ったプリントを引き継ぐ
+      Object.assign(st, { callName: lastSingle.callName, honor: lastSingle.honor, genderUnknown: lastSingle.genderUnknown, sheet: lastSingle.sheet });
+    }
+    displayResults(st);
+    if (makeSheet.checked && !st.sheet) {
+      setStatus('📝 弱点補強プリントを作成しています…');
+      await makeSheetFor(st);
+    }
   } catch (err) {
     showError(apiError, err.message);
   } finally {
@@ -1107,8 +1136,22 @@ async function processStudent(st, audience, problemMap = problemMapText.value.tr
   } catch (err) {
     st.error = err.message;
   }
+  // プリントはメッセージとは別に作る（失敗してもメッセージは残す）
+  if (st.msg && makeSheet.checked && !st.sheet) {
+    st.state = '📝 プリント作成中…';
+    st.sheetBusy = true;
+    st.sheetError = null;
+    updateStudent(st);
+    try {
+      st.sheet = await generateSheet(st, problemMap);
+    } catch (err) {
+      st.sheetError = err.message;
+    }
+    st.sheetBusy = false;
+  }
   st.state = null;
   updateStudent(st);
+  updateSheetAllBtn();
 }
 
 function renderBatch() {
@@ -1190,7 +1233,18 @@ async function extractScores(imgs) {
 読み取れない場合はnullを入れてください。`;
 
   const raw = (await callAPI(prompt, 4000, imgs)).text;
+  const data = parseJsonText(raw);
+  if (data === undefined) {
+    throw new Error('成績データを画像から読み取れませんでした。写真がはっきり写っているか確認してください。');
+  }
+  if (data === null) {
+    throw new Error('成績データの解析に失敗しました。写真を撮り直して再度お試しください。');
+  }
+  return data;
+}
 
+/* AIの返答から JSON を取り出す。JSON が見つからなければ undefined、壊れていれば null */
+function parseJsonText(raw) {
   let jsonStr = null;
   const codeBlock = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (codeBlock) {
@@ -1199,18 +1253,23 @@ async function extractScores(imgs) {
     const obj = raw.match(/\{[\s\S]*\}/);
     if (obj) jsonStr = obj[0];
   }
-  if (!jsonStr) {
-    throw new Error('成績データを画像から読み取れませんでした。写真がはっきり写っているか確認してください。');
-  }
+  if (!jsonStr) return undefined;
   try {
     return JSON.parse(jsonStr);
   } catch {
-    throw new Error('成績データの解析に失敗しました。写真を撮り直して再度お試しください。');
+    return null;
   }
 }
 
 /* ── Step 2: generate LINE advice ── */
 async function generateAdvice(scores, audience, imgs, problemMap = '') {
+  const lines = scoreLines(scores);
+  const problems = problemSection(problemMap);
+  if (audience !== 'parent') return (await callAPI(studentPrompt(lines, problems), 8000, imgs)).text;
+  return (await callAPI(parentPrompt(lines, problems), 8000, imgs)).text.trim();
+}
+
+function scoreLines(scores) {
   const subjects = scores.subjects || {};
   const lines = SUBJECTS
     .filter(s => subjects[s] && subjects[s].deviation != null)
@@ -1224,12 +1283,137 @@ async function generateAdvice(scores, audience, imgs, problemMap = '') {
   if (scores.total_deviation != null) {
     lines.push(`5教科合計偏差値: ${scores.total_deviation}`);
   }
+  return lines;
+}
 
-  const problems = problemMap
-    ? `\n【この回の問題の内容（問題用紙から作成）】\n成績票の大問番号と照らし合わせ、どんな問題だったかを具体的に伝えるのに使ってください。\n${problemMap}\n`
+function problemSection(problemMap) {
+  return problemMap
+    ? `\n【この回の問題の内容（問題用紙から作成）】\n成績票の大問番号と照らし合わせ、どんな問題だったかを具体的に把握するのに使ってください。\n${problemMap}\n`
     : '';
-  if (audience !== 'parent') return (await callAPI(studentPrompt(lines, problems), 8000, imgs)).text;
-  return (await callAPI(parentPrompt(lines, problems), 8000, imgs)).text.trim();
+}
+
+/* ── 弱点補強プリント ── */
+async function generateSheet(st, problemMap) {
+  const raw = (await callAPI(sheetPrompt(scoreLines(st.scores), problemSection(problemMap)), 12000, st.images)).text;
+  const data = parseJsonText(raw);
+  if (!data || !Array.isArray(data.units) || data.units.length === 0) {
+    throw new Error('補強プリントを作成できませんでした。下のボタンからもう一度お試しください。');
+  }
+  return data;
+}
+
+function sheetPrompt(lines, problems) {
+  return (
+`あなたは中学3年生を担当する塾の先生です。
+添付はある生徒の北辰テスト個人成績票です。この生徒の弱点を補強するための、オリジナルの練習問題プリントを作ってください。
+
+【成績データ】
+${lines.join('\n')}
+${problems}
+【単元の選び方】
+- 成績票から、正答率が高い（50%以上）のに間違えた問題の単元を優先して、2〜3単元を選ぶ（次回の得点に直結するもの）
+- 間違えた問題が読み取れない場合は、偏差値が低い教科の基本となる単元を選ぶ
+
+【問題の作り方】
+- 1単元につき3問。基本→標準の順に並べる。北辰テスト・埼玉県公立高校入試レベル
+- 北辰テストの問題文をそのまま使わず、同じ単元・同じ形式のオリジナル問題にする
+- 図やグラフがないと解けない問題は作らない（文章や表だけで完結させる）。表は「温度(℃)：11、12、13」「飽和水蒸気量(g/m³)：10.0、10.7、11.4」のように文章で書く
+- 選択問題は、選択肢を問題文の中に「ア …　イ …　ウ …　エ …」の形で書く
+- 累乗は x² のように、分数は 2/3 のように書く
+- 答えは必ず自分で解き直して確かめ、正しいものだけを載せる
+- 解説は中学生が読んで分かるように1〜3文で書く
+
+【出力】次の形式のJSONのみを出力する（前後の説明は不要）
+{"units":[{"subject":"教科","unit":"単元名","reason":"選んだ理由（例：大問1-5 一次方程式の計算（正答率70.2%）を間違えたため）","problems":[{"question":"問題文","answer":"答え","explanation":"解説"}]}]}`);
+}
+
+function sheetName(st) {
+  return displayName(st) || '';
+}
+
+/* 補強プリントの印刷用ページを開く（印刷前に画面上で直接修正できる） */
+function openSheetPrint(list) {
+  const w = window.open('', '_blank');
+  if (!w) {
+    alert('印刷用の画面を開けませんでした。ブラウザのポップアップブロックを解除してください。');
+    return;
+  }
+  const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const unitsHtml = (units, answers) => units.map((u, i) => `
+    <h2>${i + 1}　【${esc(u.subject)}】${esc(u.unit)}</h2>
+    ${answers ? '' : `<div class="reason">${esc(u.reason)}</div>`}
+    ${(u.problems || []).map((q, j) => answers
+      ? `<div class="a"><b>(${j + 1})</b>${esc(q.answer)}<div class="ex">${esc(q.explanation)}</div></div>`
+      : `<div class="q"><b>(${j + 1})</b> ${esc(q.question)}</div><div class="space"></div>`).join('')}`).join('');
+  const sheets = list.map(st => `
+    <section class="sheet">
+      <h1>弱点補強プリント<span class="name">名前：${esc(sheetName(st)) || '＿＿＿＿＿＿'}</span></h1>
+      ${unitsHtml(st.sheet.units, false)}
+    </section>
+    <section class="sheet answers">
+      <h1>解答・解説<span class="name">${esc(sheetName(st))}</span></h1>
+      ${unitsHtml(st.sheet.units, true)}
+    </section>`).join('');
+
+  w.document.write(`<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>弱点補強プリント</title>
+<style>
+  @page { size: A4; margin: 14mm; }
+  body { font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif; color: #111; margin: 0; padding: 0 16px 16px; line-height: 1.7; background: #fff; }
+  .toolbar { position: sticky; top: 0; background: #f4f6fa; margin: 0 -16px; padding: 10px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #ddd; font-size: 13px; }
+  .toolbar button { padding: 8px 16px; font-size: 14px; font-weight: 700; border: none; border-radius: 8px; background: #7c3aed; color: #fff; cursor: pointer; }
+  .sheet { padding-top: 16px; page-break-after: always; break-after: page; }
+  .sheet:last-of-type { page-break-after: auto; break-after: auto; }
+  h1 { font-size: 18px; margin: 0 0 8px; padding-bottom: 4px; border-bottom: 2px solid #111; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .name { font-size: 14px; font-weight: normal; }
+  h2 { font-size: 15px; margin: 16px 0 4px; padding: 4px 8px; background: #eee; }
+  .reason { font-size: 11px; color: #555; margin-bottom: 4px; }
+  .q { margin-top: 8px; white-space: pre-wrap; }
+  .q b, .a b { margin-right: 6px; }
+  .space { height: 72px; border-bottom: 1px dashed #bbb; }
+  .a { margin: 8px 0; white-space: pre-wrap; }
+  .ex { font-size: 13px; color: #444; margin-left: 2em; }
+  .hide-answers .answers { display: none; }
+  @media print { .toolbar { display: none; } body { padding: 0; } }
+</style></head><body>
+<div class="toolbar">
+  <button id="printBtn">🖨 印刷する</button>
+  <label><input type="checkbox" id="ansToggle" checked> 解答・解説も印刷する</label>
+  <span>※問題や答えはこの画面でクリックして直接修正できます。AIが作った問題なので、配る前に答えを確認してください。</span>
+</div>
+${sheets}
+</body></html>`);
+  w.document.close();
+  w.document.querySelectorAll('.sheet').forEach(sec => { sec.contentEditable = 'true'; });
+  w.document.getElementById('printBtn').addEventListener('click', () => w.print());
+  w.document.getElementById('ansToggle').addEventListener('change', e => {
+    w.document.body.classList.toggle('hide-answers', !e.target.checked);
+  });
+}
+
+/* 1人分のプリントを作る（作り直す）。表示中のカードを更新する */
+async function makeSheetFor(st) {
+  st.sheet = null;
+  st.sheetError = null;
+  st.sheetBusy = true;
+  rerenderOne(st);
+  try {
+    st.sheet = await generateSheet(st, problemMapText.value.trim());
+  } catch (err) {
+    st.sheetError = err.message;
+  }
+  st.sheetBusy = false;
+  rerenderOne(st);
+}
+
+function rerenderOne(st) {
+  if (st === lastSingle) displayResults(st, false);
+  else if (st.el) updateStudent(st);
+  updateSheetAllBtn();
+}
+
+function updateSheetAllBtn() {
+  printAllBtn.style.display = students.some(st => st.sheet) ? '' : 'none';
 }
 
 function studentPrompt(lines, problems) {
@@ -1411,6 +1595,62 @@ function appendResult(el, st) {
 
   refresh();
   el.append(text, count, makeCopyButton(() => finalText(st)));
+  appendSheetSection(el, st);
+}
+
+function appendSheetSection(el, st) {
+  const box = document.createElement('div');
+  box.className = 'sheet-box';
+  if (st.sheetBusy) {
+    box.textContent = '📝 補強プリントを作成しています…';
+    el.appendChild(box);
+    return;
+  }
+  if (st.sheet) {
+    const count = st.sheet.units.reduce((n, u) => n + (u.problems || []).length, 0);
+    const details = document.createElement('details');
+    const summary = document.createElement('summary');
+    summary.textContent = `📝 補強プリント：${st.sheet.units.map(u => `${u.subject}「${u.unit}」`).join('・')}（${count}問）`;
+    details.appendChild(summary);
+    st.sheet.units.forEach((u, i) => {
+      const h = document.createElement('div');
+      h.className = 'sheet-unit';
+      h.textContent = `${i + 1}【${u.subject}】${u.unit}`;
+      const why = document.createElement('div');
+      why.className = 'sheet-reason';
+      why.textContent = u.reason || '';
+      details.append(h, why);
+      (u.problems || []).forEach((q, j) => {
+        const item = document.createElement('div');
+        item.className = 'sheet-q';
+        item.textContent = `(${j + 1}) ${q.question}\n　答：${q.answer}`;
+        details.appendChild(item);
+      });
+    });
+    box.appendChild(details);
+  }
+  if (st.sheetError) {
+    const err = document.createElement('div');
+    err.className = 'error-box visible';
+    err.textContent = st.sheetError;
+    box.appendChild(err);
+  }
+  const actions = document.createElement('div');
+  actions.className = 'problem-actions';
+  if (st.sheet) {
+    const print = document.createElement('button');
+    print.className = 'retry-btn';
+    print.textContent = '🖨 プリントを印刷';
+    print.addEventListener('click', () => openSheetPrint([st]));
+    actions.appendChild(print);
+  }
+  const make = document.createElement('button');
+  make.className = 'retry-btn';
+  make.textContent = st.sheet ? '🔄 プリントを作り直す' : '📝 補強プリントを作る';
+  make.addEventListener('click', () => makeSheetFor(st));
+  actions.appendChild(make);
+  box.appendChild(actions);
+  el.appendChild(box);
 }
 
 /* 読み取った氏名・性別から呼び名の初期値を決める（ユーザーが直した値は保持する） */

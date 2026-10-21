@@ -328,6 +328,38 @@
 
     #resultCard, #batchCard { display: none; }
 
+    /* ── 呼び名（名前＋君/さん） ── */
+    .name-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .name-row input {
+      flex: 1;
+      min-width: 90px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--text);
+    }
+    .honor-btn {
+      padding: 8px 12px;
+      background: #fff;
+      color: var(--muted);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .honor-btn.active { border-color: var(--purple); background: var(--purple-light); color: #4c1d95; }
+    .name-warn { width: 100%; font-size: 12px; color: var(--amber); }
+
     /* ── Batch (PDF) results ── */
     .batch-head {
       display: flex;
@@ -477,11 +509,7 @@
   <!-- Result -->
   <div class="card" id="resultCard">
     <div class="card-title">📊 分析結果</div>
-    <div class="score-grid" id="scoreGrid"></div>
-    <div class="result-text" id="resultText"></div>
-    <button class="copy-btn" id="copyBtn">
-      <span>📋</span><span id="copyLabel">LINEメッセージをコピー</span>
-    </button>
+    <div id="singleBody"></div>
   </div>
 
   <!-- Batch result -->
@@ -506,6 +534,8 @@ const MAX_IMGS = 4;
 const MAX_SIDE = 2000; // 送信前に縮小する長辺(px)
 const MAX_PDF_PAGES = 100;
 const CONCURRENCY   = 2; // PDF で同時に分析する人数
+const NAME_TOKEN    = '{{呼び名}}'; // メッセージ中の生徒名。画面の「呼び名」で置き換える
+const PARENT_CLOSING = 'ご家庭でも何か気になることがありましたら、遠慮なくおっしゃってください。\nよろしくお願いします。';
 const FRONT_PAGES   = 8; // 北辰テストPDFの先頭（表紙・資料A・成績一覧表）。個人成績票はその次から
 
 if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = '/vendor/pdf.worker.min.js';
@@ -522,10 +552,7 @@ const analyzeBtn  = $('analyzeBtn');
 const statusArea  = $('statusArea');
 const statusText  = $('statusText');
 const resultCard  = $('resultCard');
-const scoreGrid   = $('scoreGrid');
-const resultText  = $('resultText');
-const copyBtn     = $('copyBtn');
-const copyLabel   = $('copyLabel');
+const singleBody  = $('singleBody');
 const uploadError = $('uploadError');
 const apiError    = $('apiError');
 const photoCard   = $('photoCard');
@@ -825,7 +852,7 @@ analyzeBtn.addEventListener('click', async () => {
       : '✍️ フィードバックを生成しています…');
     const msg = await generateAdvice(scores, audience, images);
 
-    displayResults(scores, msg);
+    displayResults({ scores, msg });
   } catch (err) {
     showError(apiError, err.message);
   } finally {
@@ -914,19 +941,7 @@ function updateStudent(st) {
   title.append(name, state);
   el.appendChild(title);
 
-  if (st.scores) {
-    const grid = document.createElement('div');
-    grid.className = 'score-grid';
-    renderScoreGrid(grid, st.scores);
-    el.appendChild(grid);
-  }
-  if (st.msg) {
-    const text = document.createElement('div');
-    text.className = 'result-text';
-    text.textContent = st.msg;
-    const btn = makeCopyButton(() => st.msg);
-    el.append(text, btn);
-  }
+  appendResult(el, st);
   if (st.error) {
     const err = document.createElement('div');
     err.className = 'error-box visible';
@@ -953,7 +968,7 @@ function updateProgress() {
 copyAllBtn.addEventListener('click', async () => {
   const text = students
     .filter(st => st.msg)
-    .map(st => `■ ${st.index}人目（${st.pages}）${st.scores?.student_name ? ' ' + st.scores.student_name : ''}\n${st.msg}`)
+    .map(st => `■ ${st.index}人目（${st.pages}）${st.scores?.student_name ? ' ' + st.scores.student_name : ''}\n${finalText(st)}`)
     .join('\n\n');
   if (!text) return;
   await copyText(text);
@@ -966,7 +981,8 @@ async function extractScores(imgs) {
 `この北辰テストの成績表から以下の情報をJSON形式で抽出してください。
 必ずJSON形式のみで返答し、余分なテキストは不要です。
 {
-  "student_name": "生徒の氏名",
+  "student_name": "生徒の氏名（成績表に印刷されている漢字のまま。姓と名の間は半角スペース1つ。＊などの記号は含めない）",
+  "gender": "男 または 女（性別欄や「＊は女子」などの印で成績表に明記されている場合のみ。名前から推測しない。不明なら null）",
   "subjects": {
     "英語": {"score": 点数, "deviation": 偏差値},
     "数学": {"score": 点数, "deviation": 偏差値},
@@ -1014,8 +1030,9 @@ async function generateAdvice(scores, audience, imgs) {
     lines.push(`5教科合計偏差値: ${scores.total_deviation}`);
   }
 
-  const prompt = audience === 'parent' ? parentPrompt(lines) : studentPrompt(lines);
-  return (await callAPI(prompt, 8000, imgs)).text;
+  if (audience !== 'parent') return (await callAPI(studentPrompt(lines), 8000, imgs)).text;
+  const msg = (await callAPI(parentPrompt(lines), 8000, imgs)).text;
+  return `${msg.trimEnd()}\n\n${PARENT_CLOSING}`;
 }
 
 function studentPrompt(lines) {
@@ -1077,7 +1094,8 @@ ${lines.join('\n')}
 - 画像から読み取れない教科は偏差値をもとに書く
 - 志望校判定が画像から読み取れる場合は、総評で触れる（不安をあおらない表現にする）
 - 家庭での学習方法やサポートのお願いは書かない
-- 生徒の名前は書かず「〇〇さん」と表記する（先生が送信前に書き換えます）
+- 生徒のことは必ず「${NAME_TOKEN}」と表記する（例：「${NAME_TOKEN}は数学で…」）。名前や「お子様」「〇〇さん」などは書かない。${NAME_TOKEN}の後に「さん」「君」は付けない（後で自動で付けます）
+- 結びの挨拶（「よろしくお願いします」など）は書かない（後で自動で付けます）
 - 専門用語は避け、保護者様に分かりやすい言葉にする
 - 絵文字は使わないか、使っても全体で1〜2個までにする
 - LINEで読みやすいよう適切に改行を入れる
@@ -1094,9 +1112,7 @@ ${lines.join('\n')}
 （その教科の良かった点・今後の課題を2〜3文で）
 
 【総評】
-（〇〇さんの頑張りを認め、次回に向けた前向きなメッセージ）
-
-今後とも〇〇さんの成長をしっかりと支えてまいりますので、どうぞよろしくお願いいたします。
+（${NAME_TOKEN}の頑張りを認め、次回に向けた前向きなメッセージ）
 
 前後の説明文や補足は不要です。フォーマット通りのテキストのみ出力してください。`);
 }
@@ -1122,9 +1138,9 @@ async function callAPI(prompt, maxTokens, imgs) {
 }
 
 /* ── Display ── */
-function displayResults(scores, msg) {
-  renderScoreGrid(scoreGrid, scores);
-  resultText.textContent = msg;
+function displayResults(st) {
+  singleBody.innerHTML = '';
+  appendResult(singleBody, st);
   resultCard.style.display = 'block';
   setTimeout(() => resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
 }
@@ -1149,14 +1165,74 @@ function renderScoreGrid(grid, scores) {
   });
 }
 
-/* ── Copy ── */
-copyBtn.addEventListener('click', async () => {
-  const text = resultText.textContent;
-  if (!text) return;
-  await copyText(text);
-  flashCopied(copyBtn, copyLabel, 'LINEメッセージをコピー');
-});
+/* 成績・呼び名・メッセージ・コピーボタンを el に追加する（写真モード・PDFモード共通） */
+function appendResult(el, st) {
+  if (st.scores) {
+    const grid = document.createElement('div');
+    grid.className = 'score-grid';
+    renderScoreGrid(grid, st.scores);
+    el.appendChild(grid);
+  }
+  if (!st.msg) return;
 
+  const text = document.createElement('div');
+  text.className = 'result-text';
+  const refresh = () => { text.textContent = finalText(st); };
+
+  if (st.msg.includes(NAME_TOKEN)) {
+    initNaming(st);
+    const row = document.createElement('div');
+    row.className = 'name-row';
+    const label = document.createElement('span');
+    label.textContent = '呼び名';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = st.callName;
+    input.placeholder = '名字（漢字）';
+    input.addEventListener('input', () => { st.callName = input.value.trim(); refresh(); });
+    row.append(label, input);
+    const honorBtns = ['君', 'さん'].map(h => {
+      const b = document.createElement('button');
+      b.className = 'honor-btn' + (st.honor === h ? ' active' : '');
+      b.textContent = h;
+      b.addEventListener('click', () => {
+        st.honor = h;
+        st.genderUnknown = false;
+        honorBtns.forEach(x => x.classList.toggle('active', x === b));
+        warn.remove();
+        refresh();
+      });
+      row.appendChild(b);
+      return b;
+    });
+    const warn = document.createElement('div');
+    warn.className = 'name-warn';
+    warn.textContent = '⚠️ 成績表から性別を読み取れませんでした。君／さんを確認してください。';
+    if (st.genderUnknown) row.appendChild(warn);
+    el.appendChild(row);
+  }
+
+  refresh();
+  el.append(text, makeCopyButton(() => finalText(st)));
+}
+
+/* 読み取った氏名・性別から呼び名の初期値を決める（ユーザーが直した値は保持する） */
+function initNaming(st) {
+  if (st.callName !== undefined) return;
+  const fullName = (st.scores?.student_name || '').replace(/[＊*]/g, '').trim();
+  st.callName = fullName.split(/[\s　]+/)[0] || '';
+  const gender = st.scores?.gender;
+  st.honor = gender === '女' ? 'さん' : '君';
+  st.genderUnknown = gender !== '男' && gender !== '女';
+  if (st.genderUnknown) st.honor = 'さん';
+}
+
+function finalText(st) {
+  if (!st.msg) return '';
+  return st.msg.split(NAME_TOKEN).join((st.callName || '〇〇') + (st.honor || 'さん'));
+}
+
+/* ── Copy ── */
 function makeCopyButton(getText) {
   const btn = document.createElement('button');
   btn.className = 'copy-btn';

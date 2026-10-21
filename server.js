@@ -14,7 +14,7 @@ const MODEL = 'claude-sonnet-5-5';
 const MAX_IMAGE_DIMENSION = 1568;
 const JPEG_QUALITY = 85;
 const API_TIMEOUT_MS = 180000;
-const MAX_IMAGES = 4;
+const MAX_IMAGES = 10; // 成績票は1人2〜4枚、問題用紙は一度に最大8ページ
 
 const client = new Anthropic({ timeout: API_TIMEOUT_MS, maxRetries: 2 });
 
@@ -124,7 +124,7 @@ app.post('/api/analyze', async (req, res) => {
     return res.status(400).json({ error: { message: 'prompt がありません。' } });
   }
   if (!Array.isArray(images) || images.length > MAX_IMAGES) {
-    return res.status(400).json({ error: { message: `写真は最大${MAX_IMAGES}枚までです。` } });
+    return res.status(400).json({ error: { message: `画像は一度に最大${MAX_IMAGES}枚までです。` } });
   }
 
   try {

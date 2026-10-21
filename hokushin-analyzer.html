@@ -328,6 +328,26 @@
 
     #resultCard, #batchCard { display: none; }
 
+    /* ── 問題用紙 ── */
+    #problemInput { display: none; }
+    .problem-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .problem-map { margin-top: 10px; font-size: 13px; }
+    .problem-map summary { cursor: pointer; color: var(--purple); font-weight: 600; }
+    .problem-map textarea {
+      width: 100%;
+      min-height: 220px;
+      margin-top: 8px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.6;
+      font-family: inherit;
+      color: var(--text);
+    }
+    .teacher-row input { width: auto; flex: 1; min-width: 120px; text-align: left; }
+    .char-count { font-size: 12px; color: var(--muted); text-align: right; margin-top: 4px; }
+
     /* ── 呼び名（名前＋君/さん） ── */
     .name-row {
       display: flex;
@@ -482,6 +502,26 @@
     <div class="error-box" id="pdfError"></div>
   </div>
 
+  <!-- Problem papers -->
+  <div class="card" id="problemCard">
+    <div class="card-title">📘 問題用紙（任意）</div>
+    <div class="upload-zone" id="problemZone">
+      <div class="upload-icon">📘</div>
+      <div class="upload-label" id="problemLabel">ここをタップして問題用紙のPDFを選択</div>
+      <div class="upload-sub">複数ファイル可 ／ 各問題の内容を踏まえたメッセージになります</div>
+    </div>
+    <input type="file" id="problemInput" accept="application/pdf,.pdf" multiple />
+    <div class="pdf-info" id="problemInfo"></div>
+    <details class="problem-map" id="problemMapBox" style="display:none">
+      <summary>読み取った問題の内容（確認・修正できます）</summary>
+      <textarea id="problemMapText" placeholder="分析を始めると、ここに各問題の内容が入ります。"></textarea>
+    </details>
+    <div class="problem-actions">
+      <button class="retry-btn" id="problemClear" style="display:none">✕ 問題用紙を外す</button>
+    </div>
+    <div class="error-box" id="problemError"></div>
+  </div>
+
   <!-- Audience -->
   <div class="card">
     <div class="card-title">✉️ メッセージの宛先</div>
@@ -491,6 +531,11 @@
       <input type="radio" name="audience" id="audParent" value="parent" />
       <label for="audParent">👪 保護者様向け</label>
     </div>
+    <div class="pdf-row teacher-row">
+      <label for="teacherName">先生の名前</label>
+      <input type="text" id="teacherName" placeholder="例：飯塚" />
+    </div>
+    <div class="upload-sub" style="margin-top:6px">保護者様向けの冒頭「お世話になっています。○○です！」に入ります（このブラウザに保存されます）。</div>
   </div>
 
   <!-- Analyze -->
@@ -535,7 +580,10 @@ const MAX_SIDE = 2000; // 送信前に縮小する長辺(px)
 const MAX_PDF_PAGES = 100;
 const CONCURRENCY   = 2; // PDF で同時に分析する人数
 const NAME_TOKEN    = '{{呼び名}}'; // メッセージ中の生徒名。画面の「呼び名」で置き換える
-const PARENT_CLOSING = 'ご家庭でも何か気になることがありましたら、遠慮なくおっしゃってください。\nよろしくお願いします。';
+const PARENT_QUESTION = '北辰テストについて、お家では何か言っていましたでしょうか？';
+const PROBLEM_CHUNK = 8; // 問題用紙を一度に読み取るページ数
+const STORE_TEACHER = 'hokushin.teacherName';
+const STORE_PROBLEM = 'hokushin.problemMap.';
 const FRONT_PAGES   = 8; // 北辰テストPDFの先頭（表紙・資料A・成績一覧表）。個人成績票はその次から
 
 if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = '/vendor/pdf.worker.min.js';
@@ -570,6 +618,15 @@ const batchList     = $('batchList');
 const batchProgress = $('batchProgress');
 const copyAllBtn    = $('copyAllBtn');
 const stopBtn       = $('stopBtn');
+const problemZone   = $('problemZone');
+const problemInput  = $('problemInput');
+const problemLabel  = $('problemLabel');
+const problemInfo   = $('problemInfo');
+const problemMapBox = $('problemMapBox');
+const problemMapText = $('problemMapText');
+const problemClear  = $('problemClear');
+const problemError  = $('problemError');
+const teacherName   = $('teacherName');
 
 let images = []; // [{base64: string, type: string}, ...]
 let cachedScores = null; // 同じ写真で宛先だけ変えたときは読み取りを省略する
@@ -577,6 +634,134 @@ let pdfPages = [];       // PDF 各ページを JPEG 化したもの [{base64, t
 let students = [];       // [{index, pages, images, scores, msg, error}, ...]
 let busy = false;
 let stopRequested = false;
+let problemPages = [];   // 問題用紙の各ページ [{base64, type}, ...]
+let problemKey = '';     // 読み込んだ問題用紙の識別（ファイル名とページ数）
+let lastSingle = null;   // 写真モードの直近の結果
+
+/* ── 先生の名前（保護者様向けの冒頭に入る） ── */
+try { teacherName.value = localStorage.getItem(STORE_TEACHER) || ''; } catch {}
+teacherName.addEventListener('input', () => {
+  try { localStorage.setItem(STORE_TEACHER, teacherName.value.trim()); } catch {}
+  rerenderResults();
+});
+
+function rerenderResults() {
+  if (lastSingle && resultCard.style.display === 'block') displayResults(lastSingle, false);
+  students.forEach(st => { if (st.el) updateStudent(st); });
+}
+
+/* ── 問題用紙 ── */
+problemZone.addEventListener('click', () => { if (!busy) problemInput.click(); });
+problemZone.addEventListener('dragover', e => { e.preventDefault(); problemZone.classList.add('drag-over'); });
+problemZone.addEventListener('dragleave', () => problemZone.classList.remove('drag-over'));
+problemZone.addEventListener('drop', e => {
+  e.preventDefault();
+  problemZone.classList.remove('drag-over');
+  if (!busy && e.dataTransfer.files.length) loadProblemPdfs(e.dataTransfer.files);
+});
+problemInput.addEventListener('change', () => {
+  if (problemInput.files.length) loadProblemPdfs(problemInput.files);
+  problemInput.value = '';
+});
+problemClear.addEventListener('click', () => {
+  problemPages = [];
+  problemKey = '';
+  problemMapText.value = '';
+  problemMapBox.style.display = 'none';
+  problemClear.style.display = 'none';
+  problemInfo.textContent = '';
+  problemLabel.textContent = 'ここをタップして問題用紙のPDFを選択';
+});
+problemMapText.addEventListener('change', saveProblemMap);
+
+async function loadProblemPdfs(fileList) {
+  hideError(problemError);
+  const files = Array.from(fileList).filter(f => f.type === 'application/pdf' || /\.pdf$/i.test(f.name));
+  if (files.length === 0) { showError(problemError, 'PDFファイルを選択してください。'); return; }
+  if (!window.pdfjsLib) { showError(problemError, 'PDF読み込み機能を準備できませんでした。ページを再読み込みしてください。'); return; }
+
+  busy = true;
+  refreshBtn();
+  const pages = [];
+  try {
+    for (const file of files) {
+      const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+      for (let i = 1; i <= pdf.numPages; i++) {
+        problemInfo.textContent = `「${file.name}」を読み込んでいます…（${i} / ${pdf.numPages}ページ）`;
+        pages.push(await renderPdfPage(await pdf.getPage(i)));
+      }
+    }
+  } catch {
+    showError(problemError, '問題用紙のPDFを読み込めませんでした。ファイルが壊れていないか確認してください。');
+    problemInfo.textContent = '';
+    return;
+  } finally {
+    busy = false;
+    refreshBtn();
+  }
+
+  problemPages = pages;
+  problemKey = files.map(f => `${f.name}:${f.size}`).join('|');
+  problemLabel.textContent = `📘 ${files.map(f => f.name).join('、')}（タップで選び直し）`;
+  problemClear.style.display = '';
+  problemMapBox.style.display = '';
+  let saved = '';
+  try { saved = localStorage.getItem(STORE_PROBLEM + problemKey) || ''; } catch {}
+  problemMapText.value = saved;
+  problemInfo.textContent = saved
+    ? `全${pages.length}ページ。前回読み取った問題の内容を使います。`
+    : `全${pages.length}ページ。分析を始めると、最初に問題の内容を読み取ります（数分かかります）。`;
+}
+
+function saveProblemMap() {
+  if (!problemKey) return;
+  try { localStorage.setItem(STORE_PROBLEM + problemKey, problemMapText.value); } catch {}
+}
+
+/* 問題用紙から「どの問題が何を問うか」の一覧を作る（テスト1回につき1度だけ） */
+async function ensureProblemMap() {
+  if (problemPages.length === 0) return '';
+  if (problemMapText.value.trim()) return problemMapText.value.trim();
+
+  const chunks = [];
+  for (let i = 0; i < problemPages.length; i += PROBLEM_CHUNK) {
+    chunks.push({ from: i + 1, to: Math.min(i + PROBLEM_CHUNK, problemPages.length), text: '' });
+  }
+  let done = 0;
+  setStatus(`📘 問題用紙を読み取っています…（0 / ${chunks.length}）`);
+  const queue = chunks.slice();
+  const worker = async () => {
+    while (queue.length) {
+      const c = queue.shift();
+      c.text = (await callAPI(problemMapPrompt(c.from, c.to), 6000, problemPages.slice(c.from - 1, c.to))).text.trim();
+      setStatus(`📘 問題用紙を読み取っています…（${++done} / ${chunks.length}）`);
+    }
+  };
+  await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+
+  const map = chunks.map(c => c.text).filter(t => t && t !== 'なし').join('\n');
+  problemMapText.value = map;
+  problemMapBox.open = false;
+  saveProblemMap();
+  problemInfo.textContent = `全${problemPages.length}ページ。問題の内容を読み取りました（下で確認・修正できます）。`;
+  return map;
+}
+
+function problemMapPrompt(from, to) {
+  return (
+`添付は北辰テスト（中学3年）の問題用紙の一部（${from}〜${to}ページ目）です。
+このテストの各問題が何を問うているかの一覧を作ってください。この一覧は、生徒の個人成績票（例：「理科 2-3 金属の性質と露点の調べ方」）と照らし合わせて、保護者様へのコメントを作るのに使います。
+
+- 1問につき1行で「教科 大問-問：内容」の形式で書く（例：「理科 2-1：露点と飽和水蒸気量の表から湿度を求める計算」）
+- 小問は「2-1(1)」のように書く
+- 内容は20〜50字程度。単元と、何をする問題か（計算・記述・作図・選択・英作文など）が分かるように
+- 問題文や選択肢を書き写さない
+- ページに教科名が書かれていなければ、内容から教科を判断する
+- 表紙・注意事項・解答用紙・白紙のページは無視する
+- 問題が1つもなければ「なし」とだけ出力する
+
+一覧のみを出力し、前後の説明は不要です。`);
+}
 
 const currentMode = () => document.querySelector('input[name="mode"]:checked').value;
 const currentAudience = () => document.querySelector('input[name="audience"]:checked').value;
@@ -846,13 +1031,14 @@ analyzeBtn.addEventListener('click', async () => {
     }
     const scores = cachedScores;
 
+    const problemMap = await ensureProblemMap();
     const audience = currentAudience();
     setStatus(audience === 'parent'
       ? '✍️ 保護者様向けメッセージを作成しています…'
       : '✍️ フィードバックを生成しています…');
-    const msg = await generateAdvice(scores, audience, images);
+    const msg = await generateAdvice(scores, audience, images, problemMap);
 
-    displayResults({ scores, msg });
+    displayResults({ scores, msg, parent: audience === 'parent' });
   } catch (err) {
     showError(apiError, err.message);
   } finally {
@@ -870,6 +1056,14 @@ async function analyzeBatch() {
 
   setUI(true);
   hideError(apiError);
+  let problemMap = '';
+  try {
+    problemMap = await ensureProblemMap();
+  } catch (err) {
+    showError(apiError, '問題用紙の読み取りに失敗しました: ' + err.message);
+    setUI(false);
+    return;
+  }
   resultCard.style.display = 'none';
   setStatus(`✍️ ${students.length}人分を分析しています…（数分かかる場合があります）`);
   renderBatch();
@@ -881,7 +1075,7 @@ async function analyzeBatch() {
   stopBtn.classList.add('visible');
   const queue = students.slice();
   const worker = async () => {
-    while (queue.length && !stopRequested) await processStudent(queue.shift(), audience);
+    while (queue.length && !stopRequested) await processStudent(queue.shift(), audience, problemMap);
   };
   await Promise.all(Array.from({ length: CONCURRENCY }, worker));
   stopBtn.classList.remove('visible');
@@ -898,7 +1092,7 @@ stopBtn.addEventListener('click', () => {
   setStatus('⏹ 中止しています…（処理中の人が終わるまでお待ちください）');
 });
 
-async function processStudent(st, audience) {
+async function processStudent(st, audience, problemMap = problemMapText.value.trim()) {
   st.state = st.scores ? '✍️ 作成中…' : '📸 読み取り中…';
   st.error = null;
   updateStudent(st);
@@ -908,7 +1102,8 @@ async function processStudent(st, audience) {
       st.state = '✍️ 作成中…';
       updateStudent(st);
     }
-    st.msg = await generateAdvice(st.scores, audience, st.images);
+    st.msg = await generateAdvice(st.scores, audience, st.images, problemMap);
+    st.parent = audience === 'parent';
   } catch (err) {
     st.error = err.message;
   }
@@ -1015,7 +1210,7 @@ async function extractScores(imgs) {
 }
 
 /* ── Step 2: generate LINE advice ── */
-async function generateAdvice(scores, audience, imgs) {
+async function generateAdvice(scores, audience, imgs, problemMap = '') {
   const subjects = scores.subjects || {};
   const lines = SUBJECTS
     .filter(s => subjects[s] && subjects[s].deviation != null)
@@ -1030,19 +1225,21 @@ async function generateAdvice(scores, audience, imgs) {
     lines.push(`5教科合計偏差値: ${scores.total_deviation}`);
   }
 
-  if (audience !== 'parent') return (await callAPI(studentPrompt(lines), 8000, imgs)).text;
-  const msg = (await callAPI(parentPrompt(lines), 8000, imgs)).text;
-  return `${msg.trimEnd()}\n\n${PARENT_CLOSING}`;
+  const problems = problemMap
+    ? `\n【この回の問題の内容（問題用紙から作成）】\n成績票の大問番号と照らし合わせ、どんな問題だったかを具体的に伝えるのに使ってください。\n${problemMap}\n`
+    : '';
+  if (audience !== 'parent') return (await callAPI(studentPrompt(lines, problems), 8000, imgs)).text;
+  return (await callAPI(parentPrompt(lines, problems), 8000, imgs)).text.trim();
 }
 
-function studentPrompt(lines) {
+function studentPrompt(lines, problems) {
   return (
 `あなたは中学生を担当する塾の先生です。
 添付の北辰テスト成績表の画像と以下の成績データをもとに、生徒にLINEで送るフィードバックメッセージを作ってください。
 
 【成績データ】
 ${lines.join('\n')}
-
+${problems}
 【アドバイスの方針】
 各教科について、成績表の画像から正答率・大問番号・単元名を読み取り、以下の構成で書いてください。
 
@@ -1078,43 +1275,35 @@ ${lines.join('\n')}
 前後の説明文や補足は不要です。フォーマット通りのテキストのみ出力してください。`);
 }
 
-function parentPrompt(lines) {
+function parentPrompt(lines, problems) {
   return (
 `あなたは中学生を担当する塾の先生です。
-添付の北辰テスト成績表の画像と以下の成績データをもとに、生徒の保護者様にLINEで送る結果報告のメッセージを作ってください。
+添付の北辰テスト個人成績票の画像と以下の成績データをもとに、生徒の保護者様にLINEで送るメッセージの本文を作ってください。
 
 【成績データ】
 ${lines.join('\n')}
+${problems}
+【本文の構成（この順番で、各段落の間は空行）】
+1. 「北辰テストの分析をしたところ、」で始め、良かった点を具体的に伝える（教科・偏差値・正答率の高い問題をしっかり取れた、など）。続けて「${NAME_TOKEN}の努力あってのものだと思います！」のような、本人の頑張りを認める前向きな一言を添える
+2. 「課題点としては、」で始め、課題を1〜2点伝えて「〜です。」で締める。正答率が高い（50%以上）のに間違えた問題を優先し、どんな問題だったかを保護者様にも分かる言葉で具体的に書く
+3. 「まずは、」で始め、課題を克服するための具体的な行動案（解き直す単元、塾で取り組むこと、本人が取り組むことなど）を書く
 
-【メッセージの方針】
-- 丁寧な敬語（です・ます調、尊敬語・謙譲語）で、温かみのある文章にする
-- 生徒の頑張りや良かった点を最初に具体的に伝え、保護者様が安心して読めるようにする
-- 課題は責める言い方をせず、「次回に向けて塾でこのように取り組んでまいります」という前向きな書き方にする
-- 各教科について、成績表の画像から正答率・大問番号・単元名が読み取れれば、正答率が高い（50%以上）のに間違えた問題を中心に、具体的な数値を交えて簡潔に伝える
-- 画像から読み取れない教科は偏差値をもとに書く
-- 志望校判定が画像から読み取れる場合は、総評で触れる（不安をあおらない表現にする）
+【書き方】
+- 温かみのある、やわらかい敬語（です・ます調）。堅苦しくしすぎない。「！」は全体で1〜2回まで
+- 本文は160〜230字程度（冒頭の挨拶と最後の質問はアプリが付けるので、全体で200〜300字になります）
+- 生徒のことは必ず「${NAME_TOKEN}」と表記する。名前や「お子様」「〇〇さん」などは書かない。${NAME_TOKEN}の後に「さん」「君」は付けない（後で自動で付けます）
+- 冒頭の挨拶（「お世話になっています」など）、最後の質問や結びの挨拶は書かない（アプリが付けます）
 - 家庭での学習方法やサポートのお願いは書かない
-- 生徒のことは必ず「${NAME_TOKEN}」と表記する（例：「${NAME_TOKEN}は数学で…」）。名前や「お子様」「〇〇さん」などは書かない。${NAME_TOKEN}の後に「さん」「君」は付けない（後で自動で付けます）
-- 結びの挨拶（「よろしくお願いします」など）は書かない（後で自動で付けます）
-- 専門用語は避け、保護者様に分かりやすい言葉にする
-- 絵文字は使わないか、使っても全体で1〜2個までにする
-- LINEで読みやすいよう適切に改行を入れる
-- データがある教科のみ書く
+- 専門用語は避け、絵文字は使わない
 
-【出力フォーマット（このテキストのみ出力）】
-いつもお世話になっております。
-先日の北辰テストの結果についてご報告いたします。
+【出力例】
+北辰テストの分析をしたところ、英語は偏差値60と大きく伸び、正答率の高い問題をしっかり得点できていました。${NAME_TOKEN}の努力あってのものだと思います！
 
-【5教科】偏差値XX
-（全体の結果についての短い報告）
+課題点としては、数学で正答率70%の一次方程式の計算問題を落としてしまったことです。
 
-【教科名】偏差値XX
-（その教科の良かった点・今後の課題を2〜3文で）
+まずは、計算問題の解き直しと見直しの習慣づけに塾で一緒に取り組み、次回は確実に得点できるようにしていきます。
 
-【総評】
-（${NAME_TOKEN}の頑張りを認め、次回に向けた前向きなメッセージ）
-
-前後の説明文や補足は不要です。フォーマット通りのテキストのみ出力してください。`);
+本文のみを出力し、前後の説明文や補足は不要です。`);
 }
 
 /* ── API call via local server ── */
@@ -1138,10 +1327,12 @@ async function callAPI(prompt, maxTokens, imgs) {
 }
 
 /* ── Display ── */
-function displayResults(st) {
+function displayResults(st, scroll = true) {
+  lastSingle = st;
   singleBody.innerHTML = '';
   appendResult(singleBody, st);
   resultCard.style.display = 'block';
+  if (!scroll) return;
   setTimeout(() => resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
 }
 
@@ -1177,7 +1368,13 @@ function appendResult(el, st) {
 
   const text = document.createElement('div');
   text.className = 'result-text';
-  const refresh = () => { text.textContent = finalText(st); };
+  const count = document.createElement('div');
+  count.className = 'char-count';
+  const refresh = () => {
+    text.textContent = finalText(st);
+    // 保護者様向けは 200〜300字が目安なので文字数（空白・改行を除く）を表示する
+    count.textContent = st.parent ? `${finalText(st).replace(/\s/g, '').length}字` : '';
+  };
 
   if (st.msg.includes(NAME_TOKEN)) {
     initNaming(st);
@@ -1213,7 +1410,7 @@ function appendResult(el, st) {
   }
 
   refresh();
-  el.append(text, makeCopyButton(() => finalText(st)));
+  el.append(text, count, makeCopyButton(() => finalText(st)));
 }
 
 /* 読み取った氏名・性別から呼び名の初期値を決める（ユーザーが直した値は保持する） */
@@ -1238,7 +1435,10 @@ function displayName(st) {
 
 function finalText(st) {
   if (!st.msg) return '';
-  return st.msg.split(NAME_TOKEN).join((st.callName || '〇〇') + (st.honor || 'さん'));
+  const body = st.msg.split(NAME_TOKEN).join((st.callName || '〇〇') + (st.honor || 'さん'));
+  if (!st.parent) return body;
+  const teacher = teacherName.value.trim() || '〇〇';
+  return `お世話になっています。${teacher}です！\n\n${body}\n\n${PARENT_QUESTION}`;
 }
 
 /* ── Copy ── */

@@ -933,8 +933,8 @@ function updateStudent(st) {
   const title = document.createElement('div');
   title.className = 'student-title';
   const name = document.createElement('span');
-  const readName = st.scores && st.scores.student_name;
-  name.textContent = `${st.index}人目（${st.pages}）${readName ? ' ' + readName : ''}`;
+  const given = displayName(st);
+  name.textContent = `${st.index}人目（${st.pages}）${given ? ' ' + given : ''}`;
   const state = document.createElement('span');
   state.className = 'student-state' + (st.msg ? ' done' : st.error ? ' error' : '');
   state.textContent = st.msg ? '✅ 完了' : st.error ? '⚠️ エラー' : (st.state || '⏳ 待機中');
@@ -968,7 +968,7 @@ function updateProgress() {
 copyAllBtn.addEventListener('click', async () => {
   const text = students
     .filter(st => st.msg)
-    .map(st => `■ ${st.index}人目（${st.pages}）${st.scores?.student_name ? ' ' + st.scores.student_name : ''}\n${finalText(st)}`)
+    .map(st => `■ ${st.index}人目（${st.pages}）${displayName(st) ? ' ' + displayName(st) : ''}\n${finalText(st)}`)
     .join('\n\n');
   if (!text) return;
   await copyText(text);
@@ -981,7 +981,7 @@ async function extractScores(imgs) {
 `この北辰テストの成績表から以下の情報をJSON形式で抽出してください。
 必ずJSON形式のみで返答し、余分なテキストは不要です。
 {
-  "student_name": "生徒の氏名（成績表に印刷されている漢字のまま。姓と名の間は半角スペース1つ。＊などの記号は含めない）",
+  "given_name": "生徒の下の名前だけ（名字は含めない。成績表に印刷されている漢字のまま。＊などの記号は含めない）",
   "gender": "男 または 女（性別欄や「＊は女子」などの印で成績表に明記されている場合のみ。名前から推測しない。不明なら null）",
   "subjects": {
     "英語": {"score": 点数, "deviation": 偏差値},
@@ -1219,13 +1219,21 @@ function appendResult(el, st) {
 /* 読み取った氏名・性別から呼び名の初期値を決める（ユーザーが直した値は保持する） */
 function initNaming(st) {
   if (st.callName !== undefined) return;
-  const fullName = (st.scores?.student_name || '').replace(/[＊*]/g, '').trim();
-  const parts = fullName.split(/[\s　]+/).filter(Boolean);
-  st.callName = parts[parts.length - 1] || ''; // 下の名前（姓と名の区切りがなければ氏名全体）
+  st.callName = readGivenName(st);
   const gender = st.scores?.gender;
   st.honor = gender === '女' ? 'さん' : '君';
   st.genderUnknown = gender !== '男' && gender !== '女';
   if (st.genderUnknown) st.honor = 'さん';
+}
+
+/* 成績表から読み取った下の名前（名字は使わない） */
+function readGivenName(st) {
+  return (st.scores?.given_name || '').replace(/[＊*\s　]/g, '');
+}
+
+/* 見出し・全員分コピー用の名前（呼び名を直していればそれを使う） */
+function displayName(st) {
+  return st.callName !== undefined ? st.callName : readGivenName(st);
 }
 
 function finalText(st) {

@@ -399,7 +399,7 @@
       <div class="upload-label">ここをタップして写真を選択</div>
       <div class="upload-sub">JPG / PNG / HEIC 対応 ／ ドラッグ＆ドロップも可</div>
     </div>
-    <input type="file" id="fileInput" accept="image/*" multiple />
+    <input type="file" id="fileInput" accept="image/*,application/pdf,.pdf" multiple />
     <input type="file" id="cameraInput" accept="image/*" capture="environment" />
     <div class="thumb-grid" id="thumbGrid"></div>
     <div class="thumb-count" id="thumbCount"></div>
@@ -570,6 +570,14 @@ cameraInput.addEventListener('change', () => {
 
 function addFiles(files) {
   hideError(uploadError);
+  // 写真の欄に PDF を入れた場合は PDF（複数人）モードに切り替えて読み込む
+  const pdfFile = Array.from(files).find(f => f.type === 'application/pdf' || /\.pdf$/i.test(f.name));
+  if (pdfFile) {
+    $('modePdf').checked = true;
+    $('modePdf').dispatchEvent(new Event('change'));
+    loadPdf(pdfFile);
+    return;
+  }
   const slots = MAX_IMGS - images.length;
   if (slots <= 0) {
     showError(uploadError, `写真は最大${MAX_IMGS}枚までです。不要な写真を削除してから追加してください。`);

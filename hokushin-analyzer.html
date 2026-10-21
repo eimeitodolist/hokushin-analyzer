@@ -246,6 +246,18 @@
       animation: spin .7s linear infinite;
       flex-shrink: 0;
     }
+    .stop-btn {
+      display: none;
+      padding: 6px 12px;
+      background: #fff;
+      color: var(--red);
+      border: 2px solid #fca5a5;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .stop-btn.visible { display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── Error ── */
@@ -429,11 +441,11 @@
     </div>
     <div class="pdf-row">
       <label for="pageStart">分析するページ</label>
-      <input type="number" id="pageStart" min="1" value="1" inputmode="numeric" />
+      <input type="number" id="pageStart" min="1" value="9" inputmode="numeric" />
       <span>〜</span>
       <input type="number" id="pageEnd" min="1" inputmode="numeric" />
     </div>
-    <div class="upload-sub" style="margin-top:6px">表紙や成績一覧表などは除いて、個人成績票のページだけを指定してください。</div>
+    <div class="upload-sub" style="margin-top:6px">北辰テストのPDFは最初の8ページ（表紙・資料A・成績一覧表）を除き、9ページ目からが個人成績票です。</div>
     <div class="pdf-info" id="pdfInfo"></div>
     <div class="error-box" id="pdfError"></div>
   </div>
@@ -456,6 +468,7 @@
   <div class="status" id="statusArea">
     <div class="spinner"></div>
     <span id="statusText">分析中...</span>
+    <button class="stop-btn" id="stopBtn">⏹ 中止</button>
   </div>
 
   <!-- Error -->
@@ -493,6 +506,7 @@ const MAX_IMGS = 4;
 const MAX_SIDE = 2000; // 送信前に縮小する長辺(px)
 const MAX_PDF_PAGES = 100;
 const CONCURRENCY   = 2; // PDF で同時に分析する人数
+const FRONT_PAGES   = 8; // 北辰テストPDFの先頭（表紙・資料A・成績一覧表）。個人成績票はその次から
 
 if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = '/vendor/pdf.worker.min.js';
 
@@ -528,12 +542,14 @@ const batchCard     = $('batchCard');
 const batchList     = $('batchList');
 const batchProgress = $('batchProgress');
 const copyAllBtn    = $('copyAllBtn');
+const stopBtn       = $('stopBtn');
 
 let images = []; // [{base64: string, type: string}, ...]
 let cachedScores = null; // 同じ写真で宛先だけ変えたときは読み取りを省略する
 let pdfPages = [];       // PDF 各ページを JPEG 化したもの [{base64, type}, ...]
 let students = [];       // [{index, pages, images, scores, msg, error}, ...]
 let busy = false;
+let stopRequested = false;
 
 const currentMode = () => document.querySelector('input[name="mode"]:checked').value;
 const currentAudience = () => document.querySelector('input[name="audience"]:checked').value;
@@ -717,7 +733,7 @@ async function loadPdf(file) {
     }
     pdfPages = pages;
     pageStart.max = pageEnd.max = pages.length;
-    if (Number(pageStart.value) > pages.length) pageStart.value = 1;
+    pageStart.value = pages.length > FRONT_PAGES ? FRONT_PAGES + 1 : 1;
     pageEnd.value = pages.length;
     pdfLabel.textContent = `📑 ${file.name}（タップで選び直し）`;
   } catch {
@@ -832,14 +848,28 @@ async function analyzeBatch() {
   renderBatch();
   batchCard.style.display = 'block';
 
+  // 中止ボタン：処理中の人は終わるまで待ち、まだ始めていない人は分析しない
+  stopRequested = false;
+  stopBtn.disabled = false;
+  stopBtn.classList.add('visible');
   const queue = students.slice();
   const worker = async () => {
-    while (queue.length) await processStudent(queue.shift(), audience);
+    while (queue.length && !stopRequested) await processStudent(queue.shift(), audience);
   };
   await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+  stopBtn.classList.remove('visible');
+  if (stopRequested) {
+    queue.forEach(st => { st.state = '⏹ 中止'; updateStudent(st); });
+  }
 
   setUI(false);
 }
+
+stopBtn.addEventListener('click', () => {
+  stopRequested = true;
+  stopBtn.disabled = true;
+  setStatus('⏹ 中止しています…（処理中の人が終わるまでお待ちください）');
+});
 
 async function processStudent(st, audience) {
   st.state = st.scores ? '✍️ 作成中…' : '📸 読み取り中…';

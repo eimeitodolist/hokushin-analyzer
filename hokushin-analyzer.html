@@ -1188,7 +1188,7 @@ function appendResult(el, st) {
     const input = document.createElement('input');
     input.type = 'text';
     input.value = st.callName;
-    input.placeholder = '名字（漢字）';
+    input.placeholder = '名前（漢字）';
     input.addEventListener('input', () => { st.callName = input.value.trim(); refresh(); });
     row.append(label, input);
     const honorBtns = ['君', 'さん'].map(h => {
@@ -1220,7 +1220,8 @@ function appendResult(el, st) {
 function initNaming(st) {
   if (st.callName !== undefined) return;
   const fullName = (st.scores?.student_name || '').replace(/[＊*]/g, '').trim();
-  st.callName = fullName.split(/[\s　]+/)[0] || '';
+  const parts = fullName.split(/[\s　]+/).filter(Boolean);
+  st.callName = parts[parts.length - 1] || ''; // 下の名前（姓と名の区切りがなければ氏名全体）
   const gender = st.scores?.gender;
   st.honor = gender === '女' ? 'さん' : '君';
   st.genderUnknown = gender !== '男' && gender !== '女';

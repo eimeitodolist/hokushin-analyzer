@@ -52,6 +52,9 @@ Renderのサービス設定画面 → **Environment** タブで追加:
 | Key | Value |
 |-----|-------|
 | `ANTHROPIC_API_KEY` | `sk-ant-api03-...` (Anthropic APIキー) |
+| `APP_PASSWORD` | 画面を開くときのパスワード |
+
+`APP_PASSWORD` を設定すると、画面を開いたときにユーザー名とパスワードを聞かれます。ユーザー名は何でも構いません。設定しないと、URLを知っている人なら誰でも使えてしまう（APIの料金がかかる）ので、必ず設定してください。
 
 ### 4. デプロイ
 
@@ -64,4 +67,4 @@ Renderのサービス設定画面 → **Environment** タブで追加:
 ## 必要なもの
 
 - [Anthropic APIキー](https://console.anthropic.com/)（Claude Sonnet 5.5 を使用）
-- Node.js 18以上（ローカル起動の場合）
+- Node.js 24（ローカル起動の場合）

@@ -1,6 +1,7 @@
 'use strict';
 
 const fs        = require('fs');
+const crypto    = require('crypto');
 const path      = require('path');
 const express   = require('express');
 const sharp     = require('sharp');
@@ -19,6 +20,23 @@ const MAX_IMAGES = 10; // 成績票は1人2〜4枚、問題用紙は一度に最
 const client = new Anthropic({ timeout: API_TIMEOUT_MS, maxRetries: 2 });
 
 const app = express();
+
+// APP_PASSWORD が設定されていれば、画面とAPIの利用にパスワードを求める（ユーザー名は何でもよい）
+const APP_PASSWORD = process.env.APP_PASSWORD || '';
+const PASSWORD_DIGEST = crypto.createHash('sha256').update(APP_PASSWORD).digest();
+app.use((req, res, next) => {
+  if (!APP_PASSWORD) return next();
+  const [scheme, encoded] = (req.headers.authorization || '').split(' ');
+  if (scheme === 'Basic' && encoded) {
+    const decoded = Buffer.from(encoded, 'base64').toString('utf8');
+    const password = decoded.slice(decoded.indexOf(':') + 1);
+    const digest = crypto.createHash('sha256').update(password).digest();
+    if (crypto.timingSafeEqual(digest, PASSWORD_DIGEST)) return next();
+  }
+  res.set('WWW-Authenticate', 'Basic realm="hokushin-analyzer", charset="UTF-8"');
+  res.status(401).send('パスワードが必要です。');
+});
+
 app.use(express.json({ limit: '50mb' }));
 
 const SYSTEM_PROMPT = `あなたは北辰テスト（株式会社北辰図書が実施する埼玉県最大の模擬試験）に精通した塾の先生です。
@@ -170,12 +188,15 @@ app.post('/api/analyze', async (req, res) => {
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'hokushin-analyzer.html')));
 
 // PDF をブラウザで画像化するための pdf.js
-app.get('/vendor/pdf.min.js', (req, res) => res.sendFile(require.resolve('pdfjs-dist/build/pdf.min.js')));
-app.get('/vendor/pdf.worker.min.js', (req, res) => res.sendFile(require.resolve('pdfjs-dist/build/pdf.worker.min.js')));
+// 古いスマホでも動くよう legacy 版を使う。.mjs は JavaScript として返さないとブラウザが読み込まない
+const pdfjsDir = path.join(path.dirname(require.resolve('pdfjs-dist/package.json')), 'legacy', 'build');
+app.get('/vendor/pdf.min.mjs', (req, res) => res.type('text/javascript').sendFile(path.join(pdfjsDir, 'pdf.min.mjs')));
+app.get('/vendor/pdf.worker.min.mjs', (req, res) => res.type('text/javascript').sendFile(path.join(pdfjsDir, 'pdf.worker.min.mjs')));
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`サーバー起動: http://localhost:${PORT}`);
   console.log('終了するには Ctrl+C を押してください。');
   console.log('ANTHROPIC_API_KEY:', process.env.ANTHROPIC_API_KEY ? '設定済み' : '★未設定（.env を作成してください）');
+  console.log('APP_PASSWORD:', APP_PASSWORD ? '設定済み' : '★未設定（誰でも利用できる状態です）');
 });

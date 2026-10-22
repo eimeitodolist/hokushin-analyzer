@@ -586,7 +586,11 @@
 
 </div><!-- /container -->
 
-<script src="/vendor/pdf.min.js"></script>
+<script type="module">
+import * as pdfjsLib from '/vendor/pdf.min.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/vendor/pdf.worker.min.mjs';
+window.pdfjsLib = pdfjsLib;
+</script>
 <script>
 'use strict';
 
@@ -604,7 +608,6 @@ const STORE_TEACHER = 'hokushin.teacherName';
 const STORE_PROBLEM = 'hokushin.problemMap.';
 const FRONT_PAGES   = 8; // 北辰テストPDFの先頭（表紙・資料A・成績一覧表）。個人成績票はその次から
 
-if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = '/vendor/pdf.worker.min.js';
 
 /* ── DOM refs ── */
 const $ = id => document.getElementById(id);
@@ -707,7 +710,7 @@ async function loadProblemPdfs(fileList) {
   const pages = [];
   try {
     for (const file of files) {
-      const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+      const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer(), isEvalSupported: false }).promise;
       for (let i = 1; i <= pdf.numPages; i++) {
         problemInfo.textContent = `「${file.name}」を読み込んでいます…（${i} / ${pdf.numPages}ページ）`;
         pages.push(await renderPdfPage(await pdf.getPage(i)));
@@ -955,7 +958,7 @@ async function loadPdf(file) {
   busy = true;
   refreshBtn();
   try {
-    const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+    const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer(), isEvalSupported: false }).promise;
     if (pdf.numPages > MAX_PDF_PAGES) {
       showError(pdfError, `PDFは最大${MAX_PDF_PAGES}ページまでです（このPDFは${pdf.numPages}ページ）。分割してから読み込んでください。`);
       return;
@@ -988,7 +991,7 @@ async function renderPdfPage(page) {
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = '#fff'; // 透明部分が JPEG で黒くならないように
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  await page.render({ canvasContext: ctx, viewport }).promise;
+  await page.render({ canvas, viewport }).promise;
   return { base64: canvas.toDataURL('image/jpeg', 0.88).split(',')[1], type: 'image/jpeg' };
 }
 

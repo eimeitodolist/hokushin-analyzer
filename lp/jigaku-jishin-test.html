@@ -150,6 +150,63 @@ details[open] summary{background:#999}
 .voice{background:#fffbe3;border-radius:10px;padding:8px 10px;font-size:13px;position:relative}
 .voice::before{content:"💬 ";}
 
+
+/* real-style report */
+.rp-screen{background:#eef1f5;--rn:#1f3a5f}
+.rp-tabs{display:flex;gap:6px;padding:12px 10px 4px}
+.rp-tabs span{font-size:12px;border:1.5px solid #c5cfdb;border-radius:999px;padding:4px 10px;color:var(--rn);background:#fff}
+.rp-tabs span.on{background:var(--rn);color:#fff;border-color:var(--rn)}
+.rp-page{background:#fff;margin:8px;border-radius:14px;padding:14px 12px}
+.rp-page p{margin:0}
+.rp-meta{font-size:11px;color:#555}
+.rp-kind{font-size:13px;color:#2d5a9a;font-weight:900}
+.rp-name{font-size:21px;font-weight:900;line-height:1.4}
+.rp-name.sm{font-size:16px}
+.rp-school{font-size:12px;color:#555;margin-bottom:10px!important}
+.rp-box{border:1.5px solid var(--rn);border-radius:10px;text-align:center;padding:6px;line-height:1.25}
+.rp-box small{display:block;font-size:11px}
+.rp-box b{font-family:var(--en);font-size:32px;color:var(--rn)}
+.rp-box b.sm{font-family:var(--jp);font-size:22px;display:block;padding:5px 0}
+.rp-box span{display:block;font-size:11px}
+.rp-score span{display:inline}
+.rp-two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.rp-h{background:var(--rn);color:#fff;font-size:14px;font-weight:900;border-radius:6px;padding:6px 10px;margin:14px 0 8px}
+.rp-legend{font-size:11px;color:#555;text-align:center;margin:2px 0 6px!important}
+.rp-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.rp-tbl th,.rp-tbl td{border:1px solid #b9c3cf;padding:5px 6px;vertical-align:middle;line-height:1.45}
+.rp-tbl th{background:#e8edf3;font-weight:900}
+.rp-tbl .r{text-align:right}.rp-tbl .c{text-align:center;white-space:nowrap}
+.rp-tbl .up{color:#1f8a3a;font-weight:900}.rp-tbl .dn{color:#c0392b;font-weight:900}
+.rp-miss{font-size:11px}
+.rp-miss tr.grp td{background:#f1f4f8}
+.rp-good,.rp-grow{border:1.5px solid #2e8b47;border-radius:10px;padding:8px 10px;margin-top:10px;font-size:12px}
+.rp-grow{border-color:#c0392b}
+.rp-good>p,.rp-grow>p{font-weight:900;color:#2e8b47;font-size:13px}
+.rp-grow>p{color:#c0392b}
+.rp-good ul,.rp-grow ul,.rp-list{margin:4px 0 0;padding-left:18px}
+.rp-good small{color:#777;padding-left:18px}
+.rp-text{font-size:13px;line-height:1.85}
+.rp-list{font-size:12.5px;line-height:1.8}
+.rp-small{font-size:10.5px;color:#666;line-height:1.6;margin-top:6px!important}
+.rp-next{border:2px solid #e08a1e;background:#fff7ec;border-radius:10px;padding:10px;margin-top:12px;font-size:12.5px}
+.rp-next .t{color:#c96f0a;font-weight:900;font-size:14px}
+.rp-next .course{background:#fff;border:1.5px solid #e08a1e;border-radius:8px;padding:6px 8px;margin:6px 0;font-size:12px}
+.rp-next .course b{color:#c96f0a}
+.rp-next small{font-size:11px;color:#666}
+.sheet{background:#f4f4f2;border:1px solid #ccc;border-radius:6px;padding:10px;font-size:11px}
+.sheet-head{display:flex;justify-content:space-between;font-weight:900;font-size:12px}
+.sheet-head .tot{color:#d33}
+.sheet-name{border:1px solid #999;background:#fff;padding:2px 6px;margin:6px 0}
+.sheet-sec{background:#222;color:#fff;font-weight:700;padding:1px 6px;margin:8px 0 4px!important}
+.sheet-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.sheet-grid.three{grid-template-columns:1fr 1fr 1fr}
+.sheet-grid>div{background:#fff;border:1px solid #999;display:flex;align-items:center;gap:4px;padding:3px 16px 3px 4px;position:relative;min-height:30px;white-space:nowrap;overflow:hidden}
+.sheet-grid i{font-style:normal;font-size:9px;color:#444;flex:none}
+.hand{font-family:"Klee One",serif;font-size:14px;color:#333}
+.sheet-grid em{position:absolute;right:2px;top:-1px;font-style:normal;font-weight:900;color:#e02020;font-size:11px;line-height:1.2}
+.rp-btns{display:flex;gap:10px;align-items:center;margin-top:12px}
+.rp-btns .b1{background:#2d64a8;color:#fff;border-radius:8px;padding:8px 12px;font-size:12px}
+.rp-btns .b2{color:#2d64a8;text-decoration:underline;font-size:12px}
 .report-points{display:grid;gap:10px;margin-top:22px}
 .rp{background:#fff;border-radius:14px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line)}
 .rp b{flex:none;font-family:var(--en);background:var(--orange);color:#fff;border-radius:8px;padding:0 8px;font-size:14px}
@@ -234,7 +291,7 @@ footer{text-align:center;font-size:12px;color:var(--sub);padding:20px 16px}
       </div>
       <div class="point p2">
         <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
-        <div><h3>全国判定で実力を把握</h3><p>全国の推定偏差値や塾内・校舎内順位で、今の実力を客観的に判定します。</p></div>
+        <div><h3>推定偏差値で実力を把握</h3><p>推定偏差値や順位・校舎内順位で、今の実力を客観的に判定します。</p></div>
       </div>
       <div class="point p3">
         <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></div>
@@ -247,7 +304,7 @@ footer{text-align:center;font-size:12px;color:var(--sub);padding:20px 16px}
 <!-- ===== 問題サンプル ===== -->
 <section id="sample" class="alt">
   <div class="wrap">
-    <div class="sec-h"><span class="en">SAMPLE TEST</span><h2>問題サンプル</h2><p>問題はすべてEIMEIオリジナル。全国の推定偏差値が<br>わかるように制作されています。<br><b>算数は、実際の小学5年・11月のテストから一部を抜粋しています。</b></p></div>
+    <div class="sec-h"><span class="en">SAMPLE TEST</span><h2>問題サンプル</h2><p>問題はすべてEIMEIオリジナル。推定偏差値が<br>わかるように制作されています。<br><b>算数は、実際の小学5年・11月のテストから一部を抜粋しています。</b></p></div>
 
     <div class="tabs" role="tablist">
       <button role="tab" aria-selected="true" aria-controls="tab-sansu" id="b-sansu">算 数</button>
@@ -399,83 +456,150 @@ footer{text-align:center;font-size:12px;color:var(--sub);padding:20px 16px}
     <div class="sec-h"><span class="en">SAMPLE REPORT</span><h2>結果レポートサンプル</h2><p>結果はスマホでも見られます。<br>得点だけでは分からない「いまの位置」と「次にやること」まで。</p></div>
 
     <div class="phone">
-      <div class="screen">
-        <div class="r-head"><small>自学自伸 学力診断テスト　5年 算数　11月</small><strong>サンプル はなこ さん の結果</strong></div>
-        <div class="r-body">
+      <div class="screen rp-screen">
+        <div class="rp-tabs"><span class="on">5年 11月 算数</span><span>5年 11月 国語</span></div>
 
-          <div class="r-card">
-            <h4>今回の結果</h4>
-            <div class="kpi">
-              <div><small>得点</small><b>80</b><span> / 100</span></div>
-              <div><small>推定偏差値</small><b class="red">56.9</b></div>
-              <div><small>塾内順位</small><b>18</b><span>位 / 120人</span></div>
-              <div><small>校舎内順位</small><b>3</b><span>位 / 14人</span></div>
+        <div class="rp-page">
+          <p class="rp-meta">自学自伸学力テスト　小学5年　11月　算数</p>
+          <p class="rp-kind">保護者さま向け 結果報告</p>
+          <p class="rp-name">エイメイ　花子 さん</p>
+          <p class="rp-school">EIMEI　○○校舎</p>
+
+          <div class="rp-box rp-score"><small>得点</small><b>74</b><span> / 100</span></div>
+          <div class="rp-two">
+            <div class="rp-box"><small>推定偏差値</small><b>61.9</b><span>50が平均</span></div>
+            <div class="rp-box"><small>順位</small><b class="sm">上位4割</b><span>校舎内 1位／12人</span></div>
+          </div>
+
+          <h4 class="rp-h">推定偏差値の推移（5年 算数）</h4>
+          <svg viewBox="0 0 300 150" role="img" aria-label="11月の推定偏差値は61.9">
+            <g font-family="Zen Maru Gothic, sans-serif" font-size="11" fill="#666">
+              <g stroke="#e3e8ef"><line x1="40" y1="20" x2="250" y2="20"/><line x1="40" y1="45" x2="250" y2="45"/><line x1="40" y1="95" x2="250" y2="95"/><line x1="40" y1="120" x2="250" y2="120"/></g>
+              <line x1="40" y1="70" x2="250" y2="70" stroke="#8a97a8" stroke-width="1.5"/>
+              <text x="32" y="24" text-anchor="end">70</text><text x="32" y="49" text-anchor="end">60</text><text x="32" y="74" text-anchor="end">50</text><text x="32" y="99" text-anchor="end">40</text><text x="32" y="124" text-anchor="end">30</text>
+              <text x="55" y="142" text-anchor="middle">4月</text><text x="145" y="142" text-anchor="middle">7月</text><text x="240" y="142" text-anchor="middle">11月</text>
+            </g>
+            <circle cx="240" cy="40.25" r="5" fill="#3d7cc9"/>
+            <text x="240" y="30" font-family="Zen Maru Gothic, sans-serif" font-size="12" font-weight="700" fill="#1f3a5f" text-anchor="middle">61.9</text>
+          </svg>
+
+          <h4 class="rp-h">分野別の得点率</h4>
+          <svg viewBox="0 0 300 185" role="img" aria-label="数と計算91%（目安56%）、変化と関係100%（目安67%）、図形50%（目安53%）">
+            <g fill="none" stroke="#d5dbe3"><polygon points="150,30 219.3,150 80.7,150"/><polygon points="150,56.7 196.2,136.7 103.8,136.7"/><polygon points="150,83.3 173.1,123.3 126.9,123.3"/>
+              <line x1="150" y1="110" x2="150" y2="30"/><line x1="150" y1="110" x2="219.3" y2="150"/><line x1="150" y1="110" x2="80.7" y2="150"/></g>
+            <polygon points="150,37.2 219.3,150 115.4,130" fill="rgba(61,124,201,.22)" stroke="#3d7cc9" stroke-width="2.5" stroke-linejoin="round"/>
+            <polygon points="150,65.2 196.4,136.8 113.3,131.2" fill="none" stroke="#c98a3d" stroke-width="2" stroke-dasharray="5 4"/>
+            <g font-family="Zen Maru Gothic, sans-serif" font-size="12" fill="#333" text-anchor="middle">
+              <text x="150" y="18">数と計算</text><text x="246" y="172">変化と関係</text><text x="62" y="172">図形</text>
+            </g>
+          </svg>
+          <p class="rp-legend"><span style="color:#3d7cc9">青</span>＝お子さま　<span style="color:#c98a3d">橙の点線</span>＝目安（想定正答率）</p>
+          <table class="rp-tbl">
+            <tr><th>分野</th><th>得点率</th><th>目安</th><th>差</th></tr>
+            <tr><td>数と計算</td><td class="r">91%</td><td class="r">56%</td><td class="r up">+35</td></tr>
+            <tr><td>変化と関係</td><td class="r">100%</td><td class="r">67%</td><td class="r up">+33</td></tr>
+            <tr><td>図形</td><td class="r">50%</td><td class="r">53%</td><td class="r dn">-3</td></tr>
+          </table>
+
+          <div class="rp-good"><p>できていること</p><ul><li>被除数＝除数×商＋余り（8／8点）</li><li>簡単な比例の関係（12／12点）</li><li>小数の乗除の計算と余りの大きさ（16／20点）</li></ul><small>ほか5つ（次のページ）</small></div>
+          <div class="rp-grow"><p>伸ばしたいこと</p><ul><li>体積の単位cm³・m³（0／5点）</li><li>正方形・長方形の面積の求め方（0／8点）</li></ul></div>
+
+          <h4 class="rp-h">コメント</h4>
+          <p class="rp-text">今回は74点、推定偏差値61.9でした！被除数＝除数×商＋余りや簡単な比例の関係はすべて正解で、数の関係をしっかり理解できています。課題は面積・体積の問題です。道の問題では交わる部分を二重に引いて230と答えていたり、水の体積の問題では1000cm³をLに直さずに答えていたりしました。考え方の土台はしっかりできているので、あとは最後の詰めの部分です！</p>
+        </div>
+
+        <div class="rp-page">
+          <p class="rp-meta">自学自伸学力テスト　小学5年　11月　算数　エイメイ　花子 さん</p>
+          <p class="rp-kind">結果の分析</p>
+          <p class="rp-name sm">間違い方の傾向と、次にやること</p>
+
+          <h4 class="rp-h">間違い方の傾向</h4>
+          <ul class="rp-list">
+            <li>面積や体積の問題で、重なる部分の扱いや求める単位の確認といった最後の詰めが甘く、考え方は合っていても答えを落とす傾向があります。</li>
+            <li>小数のかけ算での計算ミスや合同条件の選択ミスも見られ、手順や条件を一つずつ確かめる丁寧さが今後の伸びにつながります。</li>
+          </ul>
+
+          <h4 class="rp-h">間違えた問題と間違い方</h4>
+          <table class="rp-tbl rp-miss">
+            <tr><th>問題</th><th>間違い方</th><th>内容</th><th>得点</th></tr>
+            <tr class="grp"><td colspan="4"><b>体積の単位cm³・m³</b>　0／5点（目安 50%）</td></tr>
+            <tr><td>4(4)</td><td>単位・答え方のミス</td><td>1000cm³をLに直さず答えた</td><td class="c">0/5</td></tr>
+            <tr class="grp"><td colspan="4"><b>正方形・長方形の面積の求め方</b>　0／8点（目安 15%）</td></tr>
+            <tr><td>5(2)</td><td>式の立て方（問題文の読み取り）</td><td>230：道の交わる部分を二重に引いた</td><td class="c">0/8</td></tr>
+            <tr class="grp"><td colspan="4"><b>立方体・直方体の体積</b>　10／15点（目安 70%）</td></tr>
+            <tr><td>4(3)</td><td>式の立て方（問題文の読み取り）</td><td>168：立体の分け方・引き方を誤る</td><td class="c">0/5</td></tr>
+            <tr class="grp"><td colspan="4"><b>図形の決定要素と合同</b>　8／12点（目安 68%）</td></tr>
+            <tr><td>3(3)</td><td>図形の性質の理解不足</td><td>アを選択：合同になる条件の理解不足</td><td class="c">0/4</td></tr>
+            <tr class="grp"><td colspan="4"><b>小数の乗除の計算と余りの大きさ</b>　16／20点（目安 66%）</td></tr>
+            <tr><td>1(1)</td><td>計算ミス（筆算の手順）</td><td>8.64を7.64：積の一の位を誤る</td><td class="c">0/4</td></tr>
+          </table>
+          <p class="rp-small">※間違い方の種類は、答案の内容をもとにAIが判定したものです。文字起こしの誤りで実際と異なる場合があります。</p>
+
+          <div class="rp-next">
+            <p class="t">次の一歩（復習と講習のご案内）</p>
+            <p>目安を大きく下回る単元はありませんでした。冬期講習では、次のコースで得意をさらに伸ばすのがおすすめです。</p>
+            <div class="course"><b>小数の計算</b>　このテストでの関連問題 20／24点（目安 68%）<br>基本的な四則計算にくわえて、小数点に注意して処理する力を身につけます！</div>
+            <small>日程・料金・受講の組み合わせは、校舎の先生にご相談ください。</small>
+          </div>
+          <p class="rp-small">推定偏差値について：基準は、塾に通っていない子も含めた一般の小学生を想定し、問題ごとの想定正答率からの推計と実際の受験者69人の結果を組み合わせたものです（基準の平均43.2点・標準偏差25.9）。全国の受験者による偏差値ではありません。</p>
+        </div>
+
+        <div class="rp-page">
+          <h4 class="rp-h" style="margin-top:0">答案（採点済み）</h4>
+          <div class="sheet">
+            <div class="sheet-head"><span>自学自伸学力テスト　答案用紙</span><span class="tot">合計 74 / 100点</span></div>
+            <div class="sheet-name">名前　<span class="hand">エイメイ 花子</span></div>
+            <p class="sheet-sec">1　計算</p>
+            <div class="sheet-grid">
+              <div><i>1-(1)</i><span class="hand">7.64</span><em class="ng">×</em></div>
+              <div><i>1-(2)</i><span class="hand">0.504</span><em class="ok">○</em></div>
+              <div><i>1-(3)</i><span class="hand">3.6</span><em class="ok">○</em></div>
+              <div><i>1-(4)</i><span class="hand">12.5</span><em class="ok">○</em></div>
+              <div><i>1-(5)</i><span class="hand">3 あまり1.4</span><em class="ok">○</em></div>
+              <div><i>1-(6)</i><span class="hand">1.45</span><em class="ok">○</em></div>
+              <div><i>1-(7)</i><span class="hand"><span class="frac"><span>3</span><span>5</span></span></span><em class="ok">○</em></div>
+              <div><i>1-(8)</i><span class="hand">38</span><em class="ok">○</em></div>
+            </div>
+            <p class="sheet-sec">2　整数の性質と比例</p>
+            <div class="sheet-grid three">
+              <div><i>2-(1)</i><span class="hand">6</span><em class="ok">○</em></div>
+              <div><i>2-(2)</i><span class="hand">12</span><em class="ok">○</em></div>
+              <div><i>2-(3)</i><span class="hand">7.2</span><em class="ok">○</em></div>
+              <div><i>2-(4)</i><span class="hand">27 cm</span><em class="ok">○</em></div>
+              <div><i>2-(5)</i><span class="hand">20 分後</span><em class="ok">○</em></div>
+            </div>
+            <p class="sheet-sec">3　合同な図形と角</p>
+            <div class="sheet-grid three">
+              <div><i>3-(1)</i><span class="hand">7 cm</span><em class="ok">○</em></div>
+              <div><i>3-(2)</i><span class="hand">イ</span><em class="ok">○</em></div>
+              <div><i>3-(3)</i><span class="hand">ア</span><em class="ng">×</em></div>
+              <div><i>3-(4)</i><span class="hand">60 度</span><em class="ok">○</em></div>
+              <div><i>3-(5)</i><span class="hand">75 度</span><em class="ok">○</em></div>
+            </div>
+            <p class="sheet-sec">4　体積</p>
+            <div class="sheet-grid">
+              <div><i>4-(1)</i><span class="hand">125 cm³</span><em class="ok">○</em></div>
+              <div><i>4-(2)</i><span class="hand">120 cm³</span><em class="ok">○</em></div>
+              <div><i>4-(3)</i><span class="hand">168 cm³</span><em class="ng">×</em></div>
+              <div><i>4-(4)</i><span class="hand">1000 L</span><em class="ng">×</em></div>
+            </div>
+            <p class="sheet-sec">5　考える力</p>
+            <div class="sheet-grid">
+              <div><i>5-(1)</i><span class="hand">19 あまり17</span><em class="ok">○</em></div>
+              <div><i>5-(2)</i><span class="hand">230 m²</span><em class="ng">×</em></div>
             </div>
           </div>
-
-          <div class="r-card">
-            <h4>推定偏差値の推移</h4>
-            <svg viewBox="0 0 300 150" role="img" aria-label="推定偏差値は1学期47.2、2学期50.8、3学期56.9と上がっています">
-              <g font-family="Zen Maru Gothic, sans-serif" font-size="10" fill="#666">
-                <g stroke="#e3e8ef"><line x1="34" y1="20" x2="290" y2="20"/><line x1="34" y1="45" x2="290" y2="45"/><line x1="34" y1="70" x2="290" y2="70"/><line x1="34" y1="95" x2="290" y2="95"/><line x1="34" y1="120" x2="290" y2="120"/></g>
-                <text x="26" y="24" text-anchor="end">70</text><text x="26" y="49" text-anchor="end">60</text><text x="26" y="74" text-anchor="end">50</text><text x="26" y="99" text-anchor="end">40</text>
-                <text x="70" y="138" text-anchor="middle">1学期</text><text x="162" y="138" text-anchor="middle">2学期</text><text x="254" y="138" text-anchor="middle">3学期</text>
-              </g>
-              <polyline points="70,77 162,68 254,52.75" fill="none" stroke="#e0367a" stroke-width="2.5"/>
-              <g fill="#e0367a"><circle cx="70" cy="77" r="5"/><circle cx="162" cy="68" r="5"/><circle cx="254" cy="52.75" r="5"/></g>
-              <g font-family="Zen Maru Gothic, sans-serif" font-size="12" font-weight="700" fill="#e0367a" text-anchor="middle">
-                <text x="70" y="98">47.2</text><text x="162" y="89">50.8</text><text x="254" y="42">56.9</text>
-              </g>
-            </svg>
-          </div>
-
-          <div class="r-card">
-            <h4>領域別の正答率</h4>
-            <div class="bar"><div class="lbl"><span>計算</span><span>92%</span></div><div class="track"><div class="fill" style="width:92%"></div><div class="avg" style="left:78%"></div></div></div>
-            <div class="bar"><div class="lbl"><span>比例</span><span>85%</span></div><div class="track"><div class="fill" style="width:85%"></div><div class="avg" style="left:70%"></div></div></div>
-            <div class="bar"><div class="lbl"><span>合同な図形</span><span>80%</span></div><div class="track"><div class="fill" style="width:80%"></div><div class="avg" style="left:66%"></div></div></div>
-            <div class="bar weak"><div class="lbl"><span><b style="color:var(--red)">体積</b></span><span>55%</span></div><div class="track"><div class="fill" style="width:55%"></div><div class="avg" style="left:64%"></div></div></div>
-            <div class="bar"><div class="lbl"><span>考える力</span><span>45%</span></div><div class="track"><div class="fill" style="width:45%"></div><div class="avg" style="left:38%"></div></div></div>
-            <div class="legend"><span><i style="background:var(--navy)"></i>本人</span><span><i style="background:#333;width:2px"></i>全体の平均</span></div>
-          </div>
-
-          <div class="r-card">
-            <h4>苦手分野</h4>
-            <div class="weak-box"><b>体積</b>の正答率が全体の平均より低めです。ここを伸ばすと、さらに点数アップがねらえます。</div>
-          </div>
-
-          <div class="r-card">
-            <h4>1問ずつの分析（抜粋）</h4>
-            <div class="miss">
-              <div class="row"><span class="mk ok">○</span><span>大問1　計算：小数のかけ算・わり算は正確にできています。</span></div>
-              <div class="row"><span class="mk ng">×</span><span>大問4(3)　体積：2つの直方体に分けたとき、<b>重なった部分を2回</b>数えていました。</span></div>
-              <div class="row"><span class="mk ok">○</span><span>大問2　比例：表から「1分で何cm」を見つけられています。</span></div>
-            </div>
-          </div>
-
-          <div class="r-card">
-            <h4>次にやること</h4>
-            <ol class="todo">
-              <li>立体の図に、2つに分ける線をかきこむ</li>
-              <li>分けたそれぞれの「たて・横・高さ」を図に書きこむ</li>
-              <li>L字形の体積の問題を1日2問ずつ練習する</li>
-            </ol>
-          </div>
-
-          <div class="r-card">
-            <h4>ご家庭での声かけ例</h4>
-            <div class="voice">「どこで2つに分けられそう？」と、図を一緒に見ながら聞いてみてください。</div>
-          </div>
-
+          <p class="rp-small">赤の○＝正解　×＝不正解。実際の報告では、採点済みの答案の画像を拡大して見られます。</p>
+          <div class="rp-btns"><span class="b1">PDFをダウンロード</span><span class="b2">お子さま向けページ</span></div>
         </div>
       </div>
     </div>
-    <p class="note">※画面はイメージです。氏名・数値はすべて架空のものです。</p>
+    <p class="note">※画面はイメージです。実際の報告をもとに、氏名・校舎名などを変えています。</p>
 
     <div class="report-points">
-      <div class="rp"><b>1</b><div><strong>「いまの位置」が分かる</strong><p>全国の推定偏差値と、塾内・校舎内の順位をお伝えします。</p></div></div>
-      <div class="rp"><b>2</b><div><strong>どんな間違い方をしたかまで</strong><p>1問ずつ分析し、つまずきの原因を見つけます。</p></div></div>
-      <div class="rp"><b>3</b><div><strong>「次にやること」と声かけ例</strong><p>苦手を克服するための学習と、ご家庭での声かけの例まで、お子さま一人ひとりに合わせてお伝えします。</p></div></div>
+      <div class="rp"><b>1</b><div><strong>「いまの位置」が分かる</strong><p>得点・推定偏差値・順位と、分野別の得点率を目安と比べてお伝えします。</p></div></div>
+      <div class="rp"><b>2</b><div><strong>どんな間違い方をしたかまで</strong><p>間違えた問題ごとに「どう間違えたか」を分析し、採点済みの答案もお返しします。</p></div></div>
+      <div class="rp"><b>3</b><div><strong>「次の一歩」まで</strong><p>コメントと復習のご案内を、お子さま一人ひとりに合わせてお伝えします。お子さま向けページもあります。</p></div></div>
     </div>
   </div>
 </section>
@@ -486,7 +610,7 @@ footer{text-align:center;font-size:12px;color:var(--sub);padding:20px 16px}
     <div class="sec-h"><span class="en">FLOW</span><h2>受験の流れ</h2></div>
     <div class="flow">
       <div class="step"><span class="n">1</span><div><h3>テストを受ける</h3><p>内容は算数・国語。受験料は無料です。</p></div></div>
-      <div class="step"><span class="n">2</span><div><h3>結果報告</h3><p>スマホでも見られるレポートをお渡しします。</p></div></div>
+      <div class="step"><span class="n">2</span><div><h3>結果報告</h3><p>スマホで見られる保護者さま向け報告と、お子さま向けページをお渡しします。</p></div></div>
       <div class="step"><span class="n">3</span><div><h3>学習相談</h3><p>ご希望の方には、結果をもとに今後の勉強法をご案内します。</p></div></div>
     </div>
 
@@ -508,7 +632,7 @@ footer{text-align:center;font-size:12px;color:var(--sub);padding:20px 16px}
   <div class="wrap faq">
     <div class="sec-h"><span class="en">Q&amp;A</span><h2>よくあるご質問</h2></div>
     <details><summary>塾に通っていなくても受けられますか？</summary><div class="a">はい、どなたでも無料で受けられます。ご兄弟やお友達もお誘いください。</div></details>
-    <details><summary>「推定偏差値」とは何ですか？</summary><div class="a">全国の受験者の中での位置を、偏差値の形でおおよそ示したものです。得点だけでは分からない「いまの位置」が分かります。</div></details>
+    <details><summary>「推定偏差値」とは何ですか？</summary><div class="a">塾に通っていない子も含めた一般の小学生を基準に、問題ごとの想定正答率と実際の受験者の結果を組み合わせて推計した偏差値です（全国の受験者による偏差値ではありません）。得点だけでは分からない「いまの位置」の目安になります。</div></details>
     <details><summary>結果はいつ、どのように受け取れますか？</summary><div class="a">スマホでも見られる本人用レポートをお渡しします。時期は各校舎にお問い合わせください。</div></details>
     <details><summary>受けたあと、勧誘されませんか？</summary><div class="a">学習相談はご希望の方のみご案内しています。テストだけの受験も歓迎です。</div></details>
   </div>

@@ -91,6 +91,19 @@ section{padding:40px 0}
 .passage{border:1px solid #bbb;padding:10px 14px;margin:8px 0;font-size:16px;line-height:2;background:#fcfcf8}
 .passage u{text-decoration:none;border-bottom:2px solid #333}
 .ans-box{display:inline-block;min-width:80px;border:1.5px solid #333;height:1.7em;vertical-align:middle;margin:0 4px}
+.calc{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:10px 0 0;font-size:18px}
+.calc small{font-size:12px;display:block}
+.calc>div{white-space:nowrap}
+@media (max-width:480px){.calc{grid-template-columns:1fr}}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;font-size:.82em;line-height:1.05;margin:0 2px}
+.frac span:first-child{border-bottom:1.5px solid currentColor;padding:0 2px}
+.tbl-wrap{overflow-x:auto;margin:10px 0}
+.q-tbl{border-collapse:collapse;font-size:14px;width:100%;table-layout:fixed}
+.q-tbl th,.q-tbl td{border:1.5px solid #333;padding:4px 3px;text-align:center}
+.q-tbl th{background:#eee;font-weight:400;font-size:11px;line-height:1.4;width:28%}
+.choices{list-style:none;margin:6px 0 0;padding:0 0 0 8px;font-size:16px;line-height:1.9}
+.fig{display:block;margin:10px auto 6px;width:100%;max-width:380px}
+.q p+p{margin-top:8px}
 details{margin-top:8px}
 summary{cursor:pointer;display:inline-block;font-family:var(--jp);font-weight:700;font-size:13px;color:#fff;background:var(--orange);border-radius:999px;padding:4px 14px;list-style:none}
 summary::-webkit-details-marker{display:none}
@@ -234,7 +247,7 @@ footer{text-align:center;font-size:12px;color:var(--sub);padding:20px 16px}
 <!-- ===== 問題サンプル ===== -->
 <section id="sample" class="alt">
   <div class="wrap">
-    <div class="sec-h"><span class="en">SAMPLE TEST</span><h2>問題サンプル</h2><p>問題はすべてEIMEIオリジナル。全国の推定偏差値が<br>わかるように制作されています。（例：4年生）</p></div>
+    <div class="sec-h"><span class="en">SAMPLE TEST</span><h2>問題サンプル</h2><p>問題はすべてEIMEIオリジナル。全国の推定偏差値が<br>わかるように制作されています。<br><b>算数は、実際の小学5年・11月のテストから一部を抜粋しています。</b></p></div>
 
     <div class="tabs" role="tablist">
       <button role="tab" aria-selected="true" aria-controls="tab-sansu" id="b-sansu">算 数</button>
@@ -242,45 +255,107 @@ footer{text-align:center;font-size:12px;color:var(--sub);padding:20px 16px}
     </div>
 
     <div id="tab-sansu" role="tabpanel" aria-labelledby="b-sansu" class="paper">
-      <div class="paper-head"><span>自学自伸 学力診断テスト　算数</span><span class="pill">4年 ／ 40分</span></div>
+      <div class="paper-head"><span>自学自伸学力テスト　小学5年　11月　算数</span><span class="pill">40分 ／ 100点</span></div>
 
       <div class="q">
-        <span class="q-tag">計算</span>
-        <p><span class="q-num">1</span>次の計算をしましょう。<br>48 × 25 ＝ <span class="ans-box"></span></p>
-        <details><summary>答えを見る</summary><div class="ans">答え：<b>1200</b><br>48×25 は「48×100÷4」と考えると速く計算できます。</div></details>
+        <span class="q-tag">1 計算</span>
+        <p>次の計算をしましょう。わり算は、わり切れるまで計算しましょう。「商は一の位まで」とある問題は、商を一の位まで求めて、あまりも出しましょう。</p>
+        <div class="calc">
+          <div><span class="q-num">(1)</span>2.4 × 3.6</div>
+          <div><span class="q-num">(4)</span>9.36 ÷ 2.6</div>
+          <div><span class="q-num">(6)</span>8.6 ÷ 2.4<small>（商は一の位まで）</small></div>
+          <div><span class="q-num">(8)</span>1<span class="frac"><span>2</span><span>5</span></span> − <span class="frac"><span>4</span><span>5</span></span></div>
+        </div>
+        <details><summary>答えを見る</summary><div class="ans">(1) <b>8.64</b>　(4) <b>3.6</b>　(6) <b>3 あまり 1.4</b>　<span style="white-space:nowrap">(8) <b><span class="frac"><span>3</span><span>5</span></span></b></span><br>(6)は、あまりの小数点の位置に注意。わられる数の小数点の位置にそろえます。</div></details>
       </div>
 
       <div class="q">
-        <span class="q-tag">図形（長さ）</span>
-        <p><span class="q-num">2</span>下の図で、線分ABの長さは12cm、ACの長さは5cmです。CBの長さは何cmですか。</p>
-        <svg viewBox="0 0 320 180" role="img" aria-label="点A、C、Bが一直線に並んだ図。AからBまで12cm、AからCまで5cm、CからBは何cmか" style="display:block;margin:8px auto 0;width:100%;max-width:360px">
-          <g font-family="Klee One, serif" font-size="15" fill="#222" text-anchor="middle">
-            <line x1="30" y1="40" x2="290" y2="40" stroke="#222" stroke-width="2"/>
-            <circle cx="30" cy="40" r="3.5"/><circle cx="130" cy="40" r="3.5"/><circle cx="290" cy="40" r="3.5"/>
-            <text x="30" y="26">A</text><text x="130" y="26">C</text><text x="290" y="26">B</text>
-            <!-- 部分の長さ：点線の弧 -->
-            <path d="M30 40 Q80 84 130 40" fill="none" stroke="#222" stroke-width="1.4" stroke-dasharray="4 4"/>
-            <text x="80" y="78">5cm</text>
-            <path d="M130 40 Q210 88 290 40" fill="none" stroke="#222" stroke-width="1.4" stroke-dasharray="4 4"/>
-            <text x="210" y="82">？cm</text>
-            <!-- 全体の長さ：大きく外側に -->
-            <path d="M30 40 Q160 262 290 40" fill="none" stroke="#222" stroke-width="1.4" stroke-dasharray="4 4"/>
-            <text x="160" y="170">12cm</text>
+        <span class="q-tag">2 比例</span>
+        <p>下の表は、水そうに水を入れる時間□分と、水の深さ○cmの関係を表したものです。水の深さは、水を入れる時間に比例しています。</p>
+        <div class="tbl-wrap"><table class="q-tbl">
+          <tr><th>水を入れる<br>時間□（分）</th><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td></tr>
+          <tr><th>水の深さ<br>○（cm）</th><td>1.8</td><td>3.6</td><td>5.4</td><td>ア</td><td>9</td><td>10.8</td></tr>
+        </table></div>
+        <p><span class="q-num">(1)</span>表のアにあてはまる数を書きましょう。</p>
+        <p><span class="q-num">(4)</span>水の深さが36cmになるのは、水を入れはじめてから何分後ですか。</p>
+        <details><summary>答えを見る</summary><div class="ans">(1) <b>7.2</b>　(4) <b>20分後</b><br>1分で1.8cmずつ深くなるので、○＝□×1.8。36÷1.8＝20</div></details>
+      </div>
+
+      <div class="q">
+        <span class="q-tag">3 合同な図形</span>
+        <p><span class="q-num">(1)</span>下の図の2つの三角形は合同で、AとD、BとE、CとFがそれぞれ対応する頂点のとき、辺EFの長さは何cmですか。</p>
+        <svg class="fig" viewBox="0 0 390 160" role="img" aria-label="三角形ABCは角Aが80度、角Bが60度、辺BCが7cm。三角形DEFはそれと合同">
+          <g font-family="Klee One, serif" font-size="14" fill="#222" text-anchor="middle">
+            <polygon points="80,28 40,110 170,110" fill="none" stroke="#222" stroke-width="2"/>
+            <polygon points="310,28 350,110 220,110" fill="none" stroke="#222" stroke-width="2"/>
+            <path d="M71,46 A20 20 0 0 0 92,44" fill="none" stroke="#222" stroke-width="1.3"/>
+            <text x="86" y="66" font-size="12">80°</text>
+            <path d="M49,92 A20 20 0 0 1 60,110" fill="none" stroke="#222" stroke-width="1.3"/>
+            <text x="68" y="100" font-size="12">60°</text>
+            <path d="M40 110 Q105 150 170 110" fill="none" stroke="#222" stroke-width="1.3" stroke-dasharray="4 4"/>
+            <text x="105" y="148">7cm</text>
+            <text x="80" y="20">A</text><text x="28" y="116">B</text><text x="182" y="116">C</text>
+            <text x="310" y="20">D</text><text x="362" y="116">E</text><text x="208" y="116">F</text>
           </g>
         </svg>
-        <details><summary>答えを見る</summary><div class="ans">答え：<b>7cm</b><br>全体（AB）から部分（AC）をひきます。12−5＝7</div></details>
+        <p><span class="q-num">(4)</span>ある三角形と合同な三角形をかくとき、次のア〜エのうち、それだけが分かっても合同な三角形が1通りにかけないものを1つ選びましょう。</p>
+        <ul class="choices"><li>ア　3つの辺の長さ</li><li>イ　2つの辺の長さと、その間の角の大きさ</li><li>ウ　1つの辺の長さと、その両はしの2つの角の大きさ</li><li>エ　3つの角の大きさ</li></ul>
+        <details><summary>答えを見る</summary><div class="ans">(1) <b>7cm</b>（辺EFは辺BCに対応）　(4) <b>エ</b><br>3つの角の大きさだけでは、形は同じでも大きさが決まりません。</div></details>
       </div>
 
       <div class="q">
-        <span class="q-tag">文章題</span>
-        <p><span class="q-num">3</span>1こ120円のりんごを6こと、1こ60円のみかんを4こ買い、1000円さつを出しました。おつりは何円ですか。</p>
-        <details><summary>答えを見る</summary><div class="ans">答え：<b>40円</b><br>120×6＝720、60×4＝240、720＋240＝960、1000−960＝40</div></details>
+        <span class="q-tag">4 体積</span>
+        <p><span class="q-num">(3)</span>下の図のような形の立体の体積は何cm³ですか。</p>
+        <svg class="fig" viewBox="0 0 300 250" role="img" aria-label="L字形の立体。高さ6cm、横8cm、おく行き4cm、上の部分のはば3cm、右の部分の高さ3cm" style="max-width:320px">
+          <g font-family="Klee One, serif" font-size="14" fill="#222" text-anchor="middle">
+            <g fill="none" stroke="#222" stroke-width="2" stroke-linejoin="round">
+              <polygon points="60,190 220,190 220,130 120,130 120,70 60,70"/>
+              <polyline points="60,70 110,30 170,30 120,70"/>
+              <polyline points="170,30 170,90"/>
+              <polyline points="120,130 170,90 270,90 220,130"/>
+              <polyline points="270,90 270,150 220,190"/>
+            </g>
+            <g fill="none" stroke="#222" stroke-width="1.3" stroke-dasharray="4 4">
+              <path d="M60 70 Q24 130 60 190"/>
+              <path d="M60 190 Q140 226 220 190"/>
+              <path d="M60 70 Q90 92 120 70"/>
+              <path d="M220 130 Q196 160 220 190"/>
+              <path d="M220 190 Q258 186 270 150"/>
+            </g>
+            <text x="22" y="135">6cm</text>
+            <text x="140" y="228">8cm</text>
+            <text x="90" y="100">3cm</text>
+            <text x="182" y="165">3cm</text>
+            <text x="270" y="192">4cm</text>
+          </g>
+        </svg>
+        <details><summary>答えを見る</summary><div class="ans">答え：<b>132cm³</b><br>2つの直方体に分けて考えます。<br>3×6×4＝72、5×3×4＝60、72＋60＝132</div></details>
       </div>
 
       <div class="q">
-        <span class="q-tag">数と計算（がい数）</span>
-        <p><span class="q-num">4</span>4862を四捨五入して、百の位までのがい数にしましょう。</p>
-        <details><summary>答えを見る</summary><div class="ans">答え：<b>4900</b><br>十の位の「6」を四捨五入するので、切り上げて4900になります。</div></details>
+        <span class="q-tag">5 考える力</span>
+        <p><span class="q-num">(1)</span>ある数を24でわるところを、まちがえて36でわって、商が13、あまりが5になったとき、正しく計算したときの商とあまりを書きましょう。</p>
+        <details><summary>答えを見る</summary><div class="ans">答え：<b>商 19、あまり 17</b><br>ある数は 36×13＋5＝473。473÷24＝19 あまり 17</div></details>
+        <p style="margin-top:14px"><span class="q-num">(2)</span>下の図のように、たて15m、横20mの長方形の土地に、はばが2mの道を2本、たてと横に交わるように作ったとき、道をのぞいた土地（色のついていない部分）の面積は何m²ですか。</p>
+        <svg class="fig" viewBox="0 0 360 260" role="img" aria-label="たて15m、横20mの長方形の土地に、はば2mの道がたてと横に1本ずつ交わっている図" style="max-width:340px">
+          <g font-family="Klee One, serif" font-size="14" fill="#222" text-anchor="middle">
+            <rect x="134" y="40" width="24" height="180" fill="#bbb"/>
+            <rect x="60" y="112" width="240" height="24" fill="#bbb"/>
+            <rect x="60" y="40" width="240" height="180" fill="none" stroke="#222" stroke-width="2"/>
+            <g fill="none" stroke="#222" stroke-width="1"><line x1="134" y1="40" x2="134" y2="220"/><line x1="158" y1="40" x2="158" y2="220"/><line x1="60" y1="112" x2="300" y2="112"/><line x1="60" y1="136" x2="300" y2="136"/></g>
+            <g fill="none" stroke="#222" stroke-width="1.3" stroke-dasharray="4 4">
+              <path d="M134 40 Q146 16 158 40"/>
+              <path d="M300 112 Q324 124 300 136"/>
+              <path d="M60 40 Q24 130 60 220"/>
+              <path d="M60 220 Q180 262 300 220"/>
+            </g>
+            <text x="146" y="18">2m</text>
+            <text x="336" y="129">2m</text>
+            <text x="22" y="135">15m</text>
+            <text x="180" y="256">20m</text>
+          </g>
+        </svg>
+        <details><summary>答えを見る</summary><div class="ans">答え：<b>234m²</b><br>道を土地のはしに寄せて考えると、残りはたて13m、横18mの長方形。13×18＝234</div></details>
       </div>
     </div>
 
@@ -314,7 +389,7 @@ footer{text-align:center;font-size:12px;color:var(--sub);padding:20px 16px}
       </div>
     </div>
 
-    <p class="note">※掲載の問題はイメージです。実際のテストとは異なります。</p>
+    <p class="note">※算数は実際の問題からの抜粋です（全5題のうち一部）。国語はイメージです。</p>
   </div>
 </section>
 
@@ -325,7 +400,7 @@ footer{text-align:center;font-size:12px;color:var(--sub);padding:20px 16px}
 
     <div class="phone">
       <div class="screen">
-        <div class="r-head"><small>自学自伸 学力診断テスト　4年 算数　3学期</small><strong>サンプル はなこ さん の結果</strong></div>
+        <div class="r-head"><small>自学自伸 学力診断テスト　5年 算数　11月</small><strong>サンプル はなこ さん の結果</strong></div>
         <div class="r-body">
 
           <div class="r-card">
@@ -357,38 +432,39 @@ footer{text-align:center;font-size:12px;color:var(--sub);padding:20px 16px}
           <div class="r-card">
             <h4>領域別の正答率</h4>
             <div class="bar"><div class="lbl"><span>計算</span><span>92%</span></div><div class="track"><div class="fill" style="width:92%"></div><div class="avg" style="left:78%"></div></div></div>
-            <div class="bar"><div class="lbl"><span>数と計算</span><span>85%</span></div><div class="track"><div class="fill" style="width:85%"></div><div class="avg" style="left:70%"></div></div></div>
-            <div class="bar"><div class="lbl"><span>文章題</span><span>75%</span></div><div class="track"><div class="fill" style="width:75%"></div><div class="avg" style="left:60%"></div></div></div>
-            <div class="bar weak"><div class="lbl"><span><b style="color:var(--red)">図形（長さ・角）</b></span><span>55%</span></div><div class="track"><div class="fill" style="width:55%"></div><div class="avg" style="left:64%"></div></div></div>
+            <div class="bar"><div class="lbl"><span>比例</span><span>85%</span></div><div class="track"><div class="fill" style="width:85%"></div><div class="avg" style="left:70%"></div></div></div>
+            <div class="bar"><div class="lbl"><span>合同な図形</span><span>80%</span></div><div class="track"><div class="fill" style="width:80%"></div><div class="avg" style="left:66%"></div></div></div>
+            <div class="bar weak"><div class="lbl"><span><b style="color:var(--red)">体積</b></span><span>55%</span></div><div class="track"><div class="fill" style="width:55%"></div><div class="avg" style="left:64%"></div></div></div>
+            <div class="bar"><div class="lbl"><span>考える力</span><span>45%</span></div><div class="track"><div class="fill" style="width:45%"></div><div class="avg" style="left:38%"></div></div></div>
             <div class="legend"><span><i style="background:var(--navy)"></i>本人</span><span><i style="background:#333;width:2px"></i>全体の平均</span></div>
           </div>
 
           <div class="r-card">
             <h4>苦手分野</h4>
-            <div class="weak-box"><b>図形（長さ・角）</b>の正答率が全体の平均より低めです。ここを伸ばすと、さらに点数アップがねらえます。</div>
+            <div class="weak-box"><b>体積</b>の正答率が全体の平均より低めです。ここを伸ばすと、さらに点数アップがねらえます。</div>
           </div>
 
           <div class="r-card">
             <h4>1問ずつの分析（抜粋）</h4>
             <div class="miss">
-              <div class="row"><span class="mk ok">○</span><span>大問1　計算：くふうして正確に計算できています。</span></div>
-              <div class="row"><span class="mk ng">×</span><span>大問2　長さ：全体から部分を<b>ひく</b>ところで、<b>たし算</b>をしていました。</span></div>
-              <div class="row"><span class="mk ok">○</span><span>大問3　文章題：式を分けて順に考えられています。</span></div>
+              <div class="row"><span class="mk ok">○</span><span>大問1　計算：小数のかけ算・わり算は正確にできています。</span></div>
+              <div class="row"><span class="mk ng">×</span><span>大問4(3)　体積：2つの直方体に分けたとき、<b>重なった部分を2回</b>数えていました。</span></div>
+              <div class="row"><span class="mk ok">○</span><span>大問2　比例：表から「1分で何cm」を見つけられています。</span></div>
             </div>
           </div>
 
           <div class="r-card">
             <h4>次にやること</h4>
             <ol class="todo">
-              <li>図に、分かっている長さを書きこむ</li>
-              <li>「全体」と「部分」がどこかを、指でなぞって確かめる</li>
-              <li>線分図の問題を1日2問ずつ練習する</li>
+              <li>立体の図に、2つに分ける線をかきこむ</li>
+              <li>分けたそれぞれの「たて・横・高さ」を図に書きこむ</li>
+              <li>L字形の体積の問題を1日2問ずつ練習する</li>
             </ol>
           </div>
 
           <div class="r-card">
             <h4>ご家庭での声かけ例</h4>
-            <div class="voice">「どこが全体で、どこが部分かな？」と、図を一緒に見ながら聞いてみてください。</div>
+            <div class="voice">「どこで2つに分けられそう？」と、図を一緒に見ながら聞いてみてください。</div>
           </div>
 
         </div>

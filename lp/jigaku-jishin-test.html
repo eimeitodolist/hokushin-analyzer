@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>自学自伸 学力診断テスト</title>
+<meta name="description" content="小学生のための新しい学力チェック。問題サンプルと結果レポートのサンプルをご覧いただけます。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1f3a93; --green:#3a9d3f; --pink:#e0367a; --red:#e2382f; --orange:#ee7a2d;
+  --yellow:#ffe45c; --sky:#e8f3fc; --ink:#222; --sub:#555; --line:#d9e2ec; --bg:#fffdf6; --card:#fff;
+  --peach:#fdeee2; --rose:#fbe6ef; --mint:#e9f5e3;
+  --jp:"Zen Maru Gothic","Hiragino Maru Gothic ProN",sans-serif;
+  --text:"UD デジタル 教科書体 N-R","UD Digital Kyokasho-tai N-R","Klee One",serif;
+  --en:"UD デジタル 教科書体 N-B","UD Digital Kyokasho-tai N-B","UD デジタル 教科書体 N-R","Klee One",serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--jp);font-weight:500;line-height:1.75;-webkit-text-size-adjust:100%;padding-bottom:76px}
+img,svg{max-width:100%}
+a{color:inherit}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+.en{font-family:var(--en);letter-spacing:.08em}
+.mark{background:linear-gradient(transparent 62%,var(--yellow) 62%)}
+
+/* header */
+.top{background:#fff;border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:10px;padding-top:10px;padding-bottom:10px}
+.logo{display:flex;align-items:center;gap:8px;font-weight:900;color:var(--red);font-size:15px;line-height:1.2}
+.logo i{width:30px;height:30px;border:4px solid var(--red);border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:13px}
+.logo small{display:block;font-size:10px;color:var(--sub);font-weight:700}
+.top a.tel{margin-left:auto;font-weight:900;color:var(--navy);text-decoration:none;font-size:14px;white-space:nowrap}
+
+/* hero */
+.hero{background:linear-gradient(160deg,#fff 0%,#fff7e0 60%,#ffe9d6 100%);padding:28px 0 32px;position:relative;overflow:hidden}
+.hero .lead{font-weight:900;font-size:18px;margin:0}
+.hero h1{margin:6px 0 0;font-weight:900;line-height:1.1;font-size:clamp(52px,16vw,96px);letter-spacing:.02em}
+.hero h1 span:nth-child(1){color:var(--navy)}.hero h1 span:nth-child(2){color:var(--green)}
+.hero h1 span:nth-child(3){color:var(--pink)}.hero h1 span:nth-child(4){color:var(--red)}
+.hero h1 small{display:block;color:var(--ink);font-size:clamp(30px,9vw,54px);margin-top:4px}
+.ribbon{display:inline-block;margin-top:14px;background:var(--red);color:#fff;font-weight:900;font-size:clamp(18px,5.4vw,26px);padding:6px 18px;border-radius:10px;transform:rotate(-2deg);box-shadow:4px 4px 0 var(--yellow)}
+.free{position:absolute;right:16px;top:22px;width:96px;height:96px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center;text-align:center;font-weight:900;line-height:1.1;font-size:26px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.free small{font-size:9px;display:block;margin-top:4px;letter-spacing:-.02em}
+@media (max-width:420px){.free{width:76px;height:76px;font-size:20px;top:14px;right:12px}}
+.hero p.desc{margin:18px 0 0;font-size:15px}
+
+/* jump nav */
+.jump{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:22px 0 0}
+.jump a{display:flex;align-items:center;gap:10px;background:#fff;border:2px solid var(--navy);border-radius:14px;padding:12px;text-decoration:none;font-weight:900;color:var(--navy);font-size:15px;line-height:1.3}
+.jump a b{flex:none;width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-size:15px}
+.jump a.hl{background:var(--navy);color:#fff}.jump a.hl b{background:#fff;color:var(--navy)}
+
+/* sections */
+section{padding:40px 0}
+.sec-h{text-align:center;margin:0 0 22px}
+.sec-h .en{display:block;font-size:12px;color:var(--orange);font-weight:700}
+.sec-h h2{margin:2px 0 0;font-size:clamp(22px,6vw,30px);font-weight:900;line-height:1.4}
+.sec-h p{margin:8px 0 0;color:var(--sub);font-size:14px}
+.alt{background:var(--sky)}
+
+.points{display:grid;gap:12px}
+.point{border-radius:16px;padding:16px 18px;display:flex;gap:14px;align-items:flex-start}
+.point .ic{flex:none;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;color:#fff}
+.point h3{margin:0;font-size:18px;font-weight:900;line-height:1.4}
+.point p{margin:4px 0 0;font-size:14px}
+.p1{background:var(--peach)}.p1 .ic{background:var(--orange)}.p1 h3{color:var(--orange)}
+.p2{background:var(--rose)}.p2 .ic{background:var(--pink)}.p2 h3{color:var(--pink)}
+.p3{background:var(--mint)}.p3 .ic{background:var(--green)}.p3 h3{color:var(--green)}
+@media (min-width:700px){.points{grid-template-columns:repeat(3,1fr)}.point{flex-direction:column}}
+
+/* tabs */
+.tabs{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
+.tabs button{font:inherit;font-weight:900;font-size:16px;padding:10px 22px;border-radius:999px;border:2px solid var(--navy);background:#fff;color:var(--navy);cursor:pointer;min-width:120px}
+.tabs button[aria-selected="true"]{background:var(--navy);color:#fff}
+.tabs button.kokugo{border-color:var(--red);color:var(--red)}
+.tabs button.kokugo[aria-selected="true"]{background:var(--red);color:#fff}
+
+/* test paper */
+.paper{background:#fff;border:1px solid #cfd6de;border-radius:6px;box-shadow:0 6px 18px rgba(31,58,147,.08);padding:18px 16px 8px;font-family:var(--text)}
+.paper-head{display:flex;justify-content:space-between;align-items:center;border-bottom:3px double #333;padding-bottom:8px;margin-bottom:12px;font-family:var(--jp);font-weight:900;font-size:14px;gap:8px;flex-wrap:wrap}
+.paper-head .pill{background:#333;color:#fff;border-radius:4px;padding:1px 8px;font-size:12px}
+.q{padding:14px 0;border-bottom:1px dashed #cfd6de}
+.q:last-child{border-bottom:none}
+.q-tag{display:inline-block;font-family:var(--jp);font-weight:700;font-size:11px;padding:1px 8px;border-radius:999px;background:var(--sky);color:var(--navy);margin-bottom:6px}
+.kokugo-paper .q-tag{background:#fde8e6;color:var(--red)}
+.q-num{font-family:var(--en);font-weight:700;margin-right:6px}
+.q p{margin:0;font-size:17px;line-height:1.9}
+.passage{border:1px solid #bbb;padding:10px 14px;margin:8px 0;font-size:16px;line-height:2;background:#fcfcf8}
+.passage u{text-decoration:none;border-bottom:2px solid #333}
+.ans-box{display:inline-block;min-width:80px;border:1.5px solid #333;height:1.7em;vertical-align:middle;margin:0 4px}
+details{margin-top:8px}
+summary{cursor:pointer;display:inline-block;font-family:var(--jp);font-weight:700;font-size:13px;color:#fff;background:var(--orange);border-radius:999px;padding:4px 14px;list-style:none}
+summary::-webkit-details-marker{display:none}
+details[open] summary{background:#999}
+.ans{margin-top:8px;background:#fff8e8;border-left:4px solid var(--orange);padding:8px 12px;font-size:15px;border-radius:0 8px 8px 0}
+.ans b{color:var(--red)}
+.note{font-size:12px;color:var(--sub);margin:10px 0 0;text-align:center}
+
+/* report */
+.phone{max-width:380px;margin:0 auto;background:#1c1c1e;border-radius:36px;padding:12px;box-shadow:0 14px 30px rgba(0,0,0,.18)}
+.screen{background:#f4f7fb;border-radius:26px;overflow:hidden}
+.r-head{background:var(--navy);color:#fff;padding:16px 16px 14px}
+.r-head small{opacity:.85;font-size:11px;display:block}
+.r-head strong{font-size:17px}
+.r-body{padding:12px}
+.r-card{background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.r-card h4{margin:0 0 8px;font-size:13px;color:var(--navy);font-weight:900;display:flex;align-items:center;gap:6px}
+.r-card h4::before{content:"";width:4px;height:14px;background:var(--orange);border-radius:2px}
+.kpi{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kpi div{background:var(--sky);border-radius:10px;padding:8px;text-align:center;line-height:1.3}
+.kpi small{display:block;font-size:11px;color:var(--sub)}
+.kpi b{font-family:var(--en);font-size:24px;color:var(--navy)}
+.kpi b.red{color:var(--red)}
+.kpi span{font-size:12px}
+.bar{margin:8px 0}
+.bar .lbl{display:flex;justify-content:space-between;font-size:12px}
+.bar .track{position:relative;height:12px;background:#e6ebf1;border-radius:6px;margin-top:3px}
+.bar .fill{position:absolute;inset:0 auto 0 0;border-radius:6px;background:var(--navy)}
+.bar.weak .fill{background:var(--red)}
+.bar .avg{position:absolute;top:-3px;bottom:-3px;width:2px;background:#333}
+.legend{font-size:11px;color:var(--sub);display:flex;gap:12px;margin-top:4px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin-right:3px}
+.weak-box{background:#fff0ef;border:1.5px solid var(--red);border-radius:10px;padding:8px 10px;font-size:13px}
+.weak-box b{color:var(--red)}
+.todo{margin:0;padding:0;list-style:none;counter-reset:t}
+.todo li{counter-increment:t;font-size:13px;padding:5px 0 5px 30px;position:relative;border-bottom:1px dashed var(--line)}
+.todo li:last-child{border-bottom:none}
+.todo li::before{content:counter(t);position:absolute;left:0;top:6px;width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;font-size:12px;display:grid;place-items:center;font-family:var(--en)}
+.miss{font-size:13px}
+.miss .row{display:flex;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line);align-items:flex-start}
+.miss .row:last-child{border-bottom:none}
+.miss .mk{flex:none;font-weight:900;width:22px;text-align:center}
+.miss .ok{color:var(--green)}.miss .ng{color:var(--red)}
+.voice{background:#fffbe3;border-radius:10px;padding:8px 10px;font-size:13px;position:relative}
+.voice::before{content:"💬 ";}
+
+.report-points{display:grid;gap:10px;margin-top:22px}
+.rp{background:#fff;border-radius:14px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line)}
+.rp b{flex:none;font-family:var(--en);background:var(--orange);color:#fff;border-radius:8px;padding:0 8px;font-size:14px}
+.rp p{margin:0;font-size:14px}
+.rp strong{display:block;font-size:15px}
+
+/* flow */
+.flow{display:grid;gap:12px}
+.step{background:#fff;border:2px solid var(--navy);border-radius:16px;padding:14px 16px;display:flex;gap:14px;align-items:center}
+.step .n{flex:none;font-family:var(--en);font-size:44px;line-height:1;color:#9cc8ef;font-weight:700}
+.step h3{margin:0;font-size:18px;font-weight:900;color:var(--navy)}
+.step p{margin:2px 0 0;font-size:14px}
+@media (min-width:700px){.flow{grid-template-columns:repeat(3,1fr)}}
+
+/* outline table */
+.outline{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden;font-size:15px}
+.outline th,.outline td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.outline th{width:30%;background:var(--navy);color:#fff;font-weight:700;white-space:nowrap}
+.outline tr:last-child th,.outline tr:last-child td{border-bottom:none}
+.big-term{font-weight:900;color:var(--red);font-size:clamp(26px,8vw,38px);text-align:center;margin:0 0 16px}
+
+/* faq */
+.faq details{background:#fff;border-radius:12px;margin-bottom:10px;border:1px solid var(--line);padding:0}
+.faq summary{display:block;background:none;color:var(--ink);font-size:15px;padding:14px 40px 14px 44px;border-radius:12px;position:relative}
+.faq summary::before{content:"Q";position:absolute;left:14px;top:12px;font-family:var(--en);color:var(--navy);font-size:18px;font-weight:700}
+.faq summary::after{content:"+";position:absolute;right:16px;top:10px;font-size:20px;color:var(--navy)}
+.faq details[open] summary{background:none}
+.faq details[open] summary::after{content:"−"}
+.faq .a{padding:0 16px 14px 44px;font-size:14px;position:relative}
+.faq .a::before{content:"A";position:absolute;left:14px;top:-2px;font-family:var(--en);color:var(--red);font-size:18px;font-weight:700}
+
+/* cta */
+.cta{background:linear-gradient(160deg,var(--navy),#2e56c8);color:#fff;text-align:center}
+.cta h2{margin:0;font-size:clamp(20px,5.6vw,28px);font-weight:900;line-height:1.5}
+.cta .btn{display:block;max-width:420px;margin:18px auto 0;background:var(--yellow);color:var(--ink);font-weight:900;font-size:19px;padding:16px;border-radius:999px;text-decoration:none;box-shadow:0 5px 0 #c9a800}
+.cta .btn.tel{background:#fff;color:var(--navy);box-shadow:0 5px 0 #b8c4e6}
+.cta .btn.tel .en{font-size:24px;letter-spacing:.04em}
+.cta small{display:block;margin-top:10px;font-size:13px;opacity:.9}
+.friends{display:inline-block;margin-top:12px;background:var(--red);border-radius:999px;padding:4px 14px;font-weight:700;font-size:14px}
+footer{text-align:center;font-size:12px;color:var(--sub);padding:20px 16px}
+
+/* sticky bar */
+.sticky{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;z-index:10;backdrop-filter:blur(6px)}
+.sticky a{flex:1;text-align:center;text-decoration:none;font-weight:900;border-radius:999px;padding:11px 6px;font-size:15px}
+.sticky .s1{background:var(--red);color:#fff}
+.sticky .s2{background:#fff;color:var(--navy);border:2px solid var(--navy);flex:.7}
+@media print{.sticky{display:none}body{padding-bottom:0}details>*{display:block}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="logo"><i>E</i><div><small>教育学習塾</small>エイメイ学院・明成個別</div></div>
+    <a class="tel" href="tel:0120488368">📞 0120-488-368</a>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="free"><div>無料<small>で受けられます</small></div></div>
+    <p class="lead">小学生のための<br>新しい学力チェック！</p>
+    <h1><span>自</span><span>学</span><span>自</span><span>伸</span><small>学力診断テスト</small></h1>
+    <div class="ribbon">推定偏差値まで分かる！</div>
+    <p class="desc">「どんな問題が出るの？」「結果はどんなふうに返ってくるの？」<br>このページで、<span class="mark">問題と結果レポートのサンプル</span>をご覧いただけます。</p>
+    <nav class="jump" aria-label="ページ内リンク">
+      <a href="#sample"><b>1</b>問題サンプルを見る</a>
+      <a href="#report"><b>2</b>結果レポートを見る</a>
+      <a href="#flow"><b>3</b>受験の流れ・概要</a>
+      <a href="#apply" class="hl"><b>✓</b>申し込む（無料）</a>
+    </nav>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="sec-h"><span class="en">POINT</span><h2>自学自伸テストの<br>3つのポイント</h2></div>
+    <div class="points">
+      <div class="point p1">
+        <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2.5h6V4M8.5 10h7M8.5 14h7M8.5 18h4"/></svg></div>
+        <div><h3>本番に慣れること</h3><p>小学生のうちに学力診断テストに慣れておくと、本番でも力を発揮できるようになります。</p></div>
+      </div>
+      <div class="point p2">
+        <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
+        <div><h3>全国判定で実力を把握</h3><p>全国の推定偏差値や塾内・校舎内順位で、今の実力を客観的に判定します。</p></div>
+      </div>
+      <div class="point p3">
+        <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></div>
+        <div><h3>弱点発見で苦手を克服</h3><p>領域別の正答率や本人用レポートで、苦手分野を見つけて次の学習につなげます。</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 問題サンプル ===== -->
+<section id="sample" class="alt">
+  <div class="wrap">
+    <div class="sec-h"><span class="en">SAMPLE TEST</span><h2>問題サンプル</h2><p>問題はすべてEIMEIオリジナル。全国の推定偏差値が<br>わかるように制作されています。（例：4年生）</p></div>
+
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" aria-controls="tab-sansu" id="b-sansu">算 数</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-kokugo" id="b-kokugo" class="kokugo">国 語</button>
+    </div>
+
+    <div id="tab-sansu" role="tabpanel" aria-labelledby="b-sansu" class="paper">
+      <div class="paper-head"><span>自学自伸 学力診断テスト　算数</span><span class="pill">4年 ／ 40分</span></div>
+
+      <div class="q">
+        <span class="q-tag">計算</span>
+        <p><span class="q-num">1</span>次の計算をしましょう。<br>48 × 25 ＝ <span class="ans-box"></span></p>
+        <details><summary>答えを見る</summary><div class="ans">答え：<b>1200</b><br>48×25 は「48×100÷4」と考えると速く計算できます。</div></details>
+      </div>
+
+      <div class="q">
+        <span class="q-tag">図形（長さ）</span>
+        <p><span class="q-num">2</span>下の図で、線分ABの長さは12cm、ACの長さは5cmです。CBの長さは何cmですか。</p>
+        <svg viewBox="0 0 320 180" role="img" aria-label="点A、C、Bが一直線に並んだ図。AからBまで12cm、AからCまで5cm、CからBは何cmか" style="display:block;margin:8px auto 0;width:100%;max-width:360px">
+          <g font-family="Klee One, serif" font-size="15" fill="#222" text-anchor="middle">
+            <line x1="30" y1="40" x2="290" y2="40" stroke="#222" stroke-width="2"/>
+            <circle cx="30" cy="40" r="3.5"/><circle cx="130" cy="40" r="3.5"/><circle cx="290" cy="40" r="3.5"/>
+            <text x="30" y="26">A</text><text x="130" y="26">C</text><text x="290" y="26">B</text>
+            <!-- 部分の長さ：点線の弧 -->
+            <path d="M30 40 Q80 84 130 40" fill="none" stroke="#222" stroke-width="1.4" stroke-dasharray="4 4"/>
+            <text x="80" y="78">5cm</text>
+            <path d="M130 40 Q210 88 290 40" fill="none" stroke="#222" stroke-width="1.4" stroke-dasharray="4 4"/>
+            <text x="210" y="82">？cm</text>
+            <!-- 全体の長さ：大きく外側に -->
+            <path d="M30 40 Q160 262 290 40" fill="none" stroke="#222" stroke-width="1.4" stroke-dasharray="4 4"/>
+            <text x="160" y="170">12cm</text>
+          </g>
+        </svg>
+        <details><summary>答えを見る</summary><div class="ans">答え：<b>7cm</b><br>全体（AB）から部分（AC）をひきます。12−5＝7</div></details>
+      </div>
+
+      <div class="q">
+        <span class="q-tag">文章題</span>
+        <p><span class="q-num">3</span>1こ120円のりんごを6こと、1こ60円のみかんを4こ買い、1000円さつを出しました。おつりは何円ですか。</p>
+        <details><summary>答えを見る</summary><div class="ans">答え：<b>40円</b><br>120×6＝720、60×4＝240、720＋240＝960、1000−960＝40</div></details>
+      </div>
+
+      <div class="q">
+        <span class="q-tag">数と計算（がい数）</span>
+        <p><span class="q-num">4</span>4862を四捨五入して、百の位までのがい数にしましょう。</p>
+        <details><summary>答えを見る</summary><div class="ans">答え：<b>4900</b><br>十の位の「6」を四捨五入するので、切り上げて4900になります。</div></details>
+      </div>
+    </div>
+
+    <div id="tab-kokugo" role="tabpanel" aria-labelledby="b-kokugo" class="paper kokugo-paper" hidden>
+      <div class="paper-head"><span>自学自伸 学力診断テスト　国語</span><span class="pill">4年 ／ 40分</span></div>
+
+      <div class="q">
+        <span class="q-tag">漢字（読み）</span>
+        <p><span class="q-num">1</span>――線の漢字の読みをひらがなで書きましょう。<br>明日の天気を<u style="text-decoration:none;border-bottom:2px solid #333">予想</u>する。</p>
+        <details><summary>答えを見る</summary><div class="ans">答え：<b>よそう</b></div></details>
+      </div>
+
+      <div class="q">
+        <span class="q-tag">漢字（書き）</span>
+        <p><span class="q-num">2</span>――線のひらがなを漢字に直しましょう。<br><u style="text-decoration:none;border-bottom:2px solid #333">せいかく</u>な時計で時間をはかる。</p>
+        <details><summary>答えを見る</summary><div class="ans">答え：<b>正確</b></div></details>
+      </div>
+
+      <div class="q">
+        <span class="q-tag">言葉のきまり</span>
+        <p><span class="q-num">3</span>（　）に入る漢字一字を書き、ことわざを完成させましょう。<br>（　）の上にも三年</p>
+        <details><summary>答えを見る</summary><div class="ans">答え：<b>石</b><br>意味：つらくてもがまんして続ければ、いつかはむくわれること。</div></details>
+      </div>
+
+      <div class="q">
+        <span class="q-tag">読解</span>
+        <p><span class="q-num">4</span>次の文章を読んで、問いに答えましょう。</p>
+        <div class="passage">朝顔の種をまいてから一週間がたった。毎朝、ゆうたは水やりをかかさなかった。土の中から小さな緑の芽が顔を出したとき、ゆうたは思わず声を上げた。<u>それ</u>は、ゆうたが毎日待ちつづけていたものだった。</div>
+        <p>――線「それ」が指しているものを、文章中から六字で書きぬきましょう。</p>
+        <details><summary>答えを見る</summary><div class="ans">答え：<b>小さな緑の芽</b><br>「それ」の前に書かれている内容から探します。</div></details>
+      </div>
+    </div>
+
+    <p class="note">※掲載の問題はイメージです。実際のテストとは異なります。</p>
+  </div>
+</section>
+
+<!-- ===== 結果レポート ===== -->
+<section id="report">
+  <div class="wrap">
+    <div class="sec-h"><span class="en">SAMPLE REPORT</span><h2>結果レポートサンプル</h2><p>結果はスマホでも見られます。<br>得点だけでは分からない「いまの位置」と「次にやること」まで。</p></div>
+
+    <div class="phone">
+      <div class="screen">
+        <div class="r-head"><small>自学自伸 学力診断テスト　4年 算数　3学期</small><strong>サンプル はなこ さん の結果</strong></div>
+        <div class="r-body">
+
+          <div class="r-card">
+            <h4>今回の結果</h4>
+            <div class="kpi">
+              <div><small>得点</small><b>80</b><span> / 100</span></div>
+              <div><small>推定偏差値</small><b class="red">56.9</b></div>
+              <div><small>塾内順位</small><b>18</b><span>位 / 120人</span></div>
+              <div><small>校舎内順位</small><b>3</b><span>位 / 14人</span></div>
+            </div>
+          </div>
+
+          <div class="r-card">
+            <h4>推定偏差値の推移</h4>
+            <svg viewBox="0 0 300 150" role="img" aria-label="推定偏差値は1学期47.2、2学期50.8、3学期56.9と上がっています">
+              <g font-family="Zen Maru Gothic, sans-serif" font-size="10" fill="#666">
+                <g stroke="#e3e8ef"><line x1="34" y1="20" x2="290" y2="20"/><line x1="34" y1="45" x2="290" y2="45"/><line x1="34" y1="70" x2="290" y2="70"/><line x1="34" y1="95" x2="290" y2="95"/><line x1="34" y1="120" x2="290" y2="120"/></g>
+                <text x="26" y="24" text-anchor="end">70</text><text x="26" y="49" text-anchor="end">60</text><text x="26" y="74" text-anchor="end">50</text><text x="26" y="99" text-anchor="end">40</text>
+                <text x="70" y="138" text-anchor="middle">1学期</text><text x="162" y="138" text-anchor="middle">2学期</text><text x="254" y="138" text-anchor="middle">3学期</text>
+              </g>
+              <polyline points="70,77 162,68 254,52.75" fill="none" stroke="#e0367a" stroke-width="2.5"/>
+              <g fill="#e0367a"><circle cx="70" cy="77" r="5"/><circle cx="162" cy="68" r="5"/><circle cx="254" cy="52.75" r="5"/></g>
+              <g font-family="Zen Maru Gothic, sans-serif" font-size="12" font-weight="700" fill="#e0367a" text-anchor="middle">
+                <text x="70" y="98">47.2</text><text x="162" y="89">50.8</text><text x="254" y="42">56.9</text>
+              </g>
+            </svg>
+          </div>
+
+          <div class="r-card">
+            <h4>領域別の正答率</h4>
+            <div class="bar"><div class="lbl"><span>計算</span><span>92%</span></div><div class="track"><div class="fill" style="width:92%"></div><div class="avg" style="left:78%"></div></div></div>
+            <div class="bar"><div class="lbl"><span>数と計算</span><span>85%</span></div><div class="track"><div class="fill" style="width:85%"></div><div class="avg" style="left:70%"></div></div></div>
+            <div class="bar"><div class="lbl"><span>文章題</span><span>75%</span></div><div class="track"><div class="fill" style="width:75%"></div><div class="avg" style="left:60%"></div></div></div>
+            <div class="bar weak"><div class="lbl"><span><b style="color:var(--red)">図形（長さ・角）</b></span><span>55%</span></div><div class="track"><div class="fill" style="width:55%"></div><div class="avg" style="left:64%"></div></div></div>
+            <div class="legend"><span><i style="background:var(--navy)"></i>本人</span><span><i style="background:#333;width:2px"></i>全体の平均</span></div>
+          </div>
+
+          <div class="r-card">
+            <h4>苦手分野</h4>
+            <div class="weak-box"><b>図形（長さ・角）</b>の正答率が全体の平均より低めです。ここを伸ばすと、さらに点数アップがねらえます。</div>
+          </div>
+
+          <div class="r-card">
+            <h4>1問ずつの分析（抜粋）</h4>
+            <div class="miss">
+              <div class="row"><span class="mk ok">○</span><span>大問1　計算：くふうして正確に計算できています。</span></div>
+              <div class="row"><span class="mk ng">×</span><span>大問2　長さ：全体から部分を<b>ひく</b>ところで、<b>たし算</b>をしていました。</span></div>
+              <div class="row"><span class="mk ok">○</span><span>大問3　文章題：式を分けて順に考えられています。</span></div>
+            </div>
+          </div>
+
+          <div class="r-card">
+            <h4>次にやること</h4>
+            <ol class="todo">
+              <li>図に、分かっている長さを書きこむ</li>
+              <li>「全体」と「部分」がどこかを、指でなぞって確かめる</li>
+              <li>線分図の問題を1日2問ずつ練習する</li>
+            </ol>
+          </div>
+
+          <div class="r-card">
+            <h4>ご家庭での声かけ例</h4>
+            <div class="voice">「どこが全体で、どこが部分かな？」と、図を一緒に見ながら聞いてみてください。</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <p class="note">※画面はイメージです。氏名・数値はすべて架空のものです。</p>
+
+    <div class="report-points">
+      <div class="rp"><b>1</b><div><strong>「いまの位置」が分かる</strong><p>全国の推定偏差値と、塾内・校舎内の順位をお伝えします。</p></div></div>
+      <div class="rp"><b>2</b><div><strong>どんな間違い方をしたかまで</strong><p>1問ずつ分析し、つまずきの原因を見つけます。</p></div></div>
+      <div class="rp"><b>3</b><div><strong>「次にやること」と声かけ例</strong><p>苦手を克服するための学習と、ご家庭での声かけの例まで、お子さま一人ひとりに合わせてお伝えします。</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 受験の流れ ===== -->
+<section id="flow" class="alt">
+  <div class="wrap">
+    <div class="sec-h"><span class="en">FLOW</span><h2>受験の流れ</h2></div>
+    <div class="flow">
+      <div class="step"><span class="n">1</span><div><h3>テストを受ける</h3><p>内容は算数・国語。受験料は無料です。</p></div></div>
+      <div class="step"><span class="n">2</span><div><h3>結果報告</h3><p>スマホでも見られるレポートをお渡しします。</p></div></div>
+      <div class="step"><span class="n">3</span><div><h3>学習相談</h3><p>ご希望の方には、結果をもとに今後の勉強法をご案内します。</p></div></div>
+    </div>
+
+    <div style="margin-top:32px">
+      <p class="big-term"><span class="mark">各学期に1回実施</span></p>
+      <table class="outline">
+        <tr><th>対象</th><td>小学2年生〜6年生</td></tr>
+        <tr><th>教科</th><td>算数と国語（各教科40分）</td></tr>
+        <tr><th>会場</th><td>各校舎（お近くの校舎にお申し込み・お問い合わせください）</td></tr>
+        <tr><th>受験料</th><td><b style="color:var(--red)">無料</b>（塾に通っていなくても受けられます）</td></tr>
+        <tr><th>締切</th><td>お申し込み締切は各校舎にお問い合わせください</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section>
+  <div class="wrap faq">
+    <div class="sec-h"><span class="en">Q&amp;A</span><h2>よくあるご質問</h2></div>
+    <details><summary>塾に通っていなくても受けられますか？</summary><div class="a">はい、どなたでも無料で受けられます。ご兄弟やお友達もお誘いください。</div></details>
+    <details><summary>「推定偏差値」とは何ですか？</summary><div class="a">全国の受験者の中での位置を、偏差値の形でおおよそ示したものです。得点だけでは分からない「いまの位置」が分かります。</div></details>
+    <details><summary>結果はいつ、どのように受け取れますか？</summary><div class="a">スマホでも見られる本人用レポートをお渡しします。時期は各校舎にお問い合わせください。</div></details>
+    <details><summary>受けたあと、勧誘されませんか？</summary><div class="a">学習相談はご希望の方のみご案内しています。テストだけの受験も歓迎です。</div></details>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section id="apply" class="cta">
+  <div class="wrap">
+    <h2>受けて終わりじゃない。<br>「次にやること」まで見える<br>学力診断テストです！</h2>
+    <span class="friends">ご兄弟やお友達も！</span>
+    <!-- TODO: 申し込みフォームのURLに差し替え -->
+    <a class="btn" href="#">無料で申し込む</a>
+    <a class="btn tel" href="tel:0120488368">📞 <span class="en">0120-488-368</span></a>
+    <small>電話受付　月曜日〜土曜日 13:00〜21:30（祝日を除く）</small>
+  </div>
+</section>
+
+<footer>教育学習塾 エイメイ学院・明成個別・学習指導塾</footer>
+
+<div class="sticky">
+  <a class="s1" href="#apply">無料で申し込む</a>
+  <a class="s2" href="tel:0120488368">電話する</a>
+</div>
+
+<script>
+(function(){
+  var tabs=document.querySelectorAll('[role="tab"]');
+  tabs.forEach(function(t){
+    t.addEventListener('click',function(){
+      tabs.forEach(function(o){
+        var on=o===t;
+        o.setAttribute('aria-selected',on);
+        document.getElementById(o.getAttribute('aria-controls')).hidden=!on;
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -101,9 +101,19 @@ section{padding:40px 0}
 .q-tbl{border-collapse:collapse;font-size:14px;width:100%;table-layout:fixed}
 .q-tbl th,.q-tbl td{border:1.5px solid #333;padding:4px 3px;text-align:center}
 .q-tbl th{background:#eee;font-weight:400;font-size:11px;line-height:1.4;width:28%}
-.choices{list-style:none;margin:6px 0 0;padding:0 0 0 8px;font-size:16px;line-height:1.9}
+.choices{list-style:none;margin:6px 0 12px;padding:0 0 0 8px;font-size:15.5px;line-height:1.8}
+.choices li{padding-left:2em;text-indent:-2em}
 .fig{display:block;margin:10px auto 6px;width:100%;max-width:380px}
 .q p+p{margin-top:8px}
+.calc.k{font-size:16px;grid-template-columns:1fr;gap:4px;margin:6px 0 10px}
+.calc.k>div{white-space:normal}
+.q u{text-decoration:none;border-bottom:2px solid #333}
+.lead-box{border:1.5px solid #333;padding:8px 12px;font-size:15px!important;margin:8px 0!important}
+.story{border:1px solid #bbb;background:#fcfcf8;padding:12px 14px;max-height:460px;overflow-y:auto;font-size:15.5px;line-height:2}
+.story p{margin:0!important;font-size:15.5px!important;text-indent:1em}
+.story p.talk{text-indent:0}
+.story .story-title{text-align:center;font-weight:600;text-indent:0;margin-bottom:6px!important}
+ruby rt{font-size:.5em}
 details{margin-top:8px}
 summary{cursor:pointer;display:inline-block;font-family:var(--jp);font-weight:700;font-size:13px;color:#fff;background:var(--orange);border-radius:999px;padding:4px 14px;list-style:none}
 summary::-webkit-details-marker{display:none}
@@ -304,7 +314,7 @@ footer{text-align:center;font-size:12px;color:var(--sub);padding:20px 16px}
 <!-- ===== 問題サンプル ===== -->
 <section id="sample" class="alt">
   <div class="wrap">
-    <div class="sec-h"><span class="en">SAMPLE TEST</span><h2>問題サンプル</h2><p>問題はすべてEIMEIオリジナル。推定偏差値が<br>わかるように制作されています。<br><b>算数は、実際の小学5年・11月のテストから一部を抜粋しています。</b></p></div>
+    <div class="sec-h"><span class="en">SAMPLE TEST</span><h2>問題サンプル</h2><p>問題はすべてEIMEIオリジナル。推定偏差値が<br>わかるように制作されています。<br><b>算数・国語とも、実際の小学5年・11月のテストから一部を抜粋しています。</b></p></div>
 
     <div class="tabs" role="tablist">
       <button role="tab" aria-selected="true" aria-controls="tab-sansu" id="b-sansu">算 数</button>
@@ -417,36 +427,99 @@ footer{text-align:center;font-size:12px;color:var(--sub);padding:20px 16px}
     </div>
 
     <div id="tab-kokugo" role="tabpanel" aria-labelledby="b-kokugo" class="paper kokugo-paper" hidden>
-      <div class="paper-head"><span>自学自伸 学力診断テスト　国語</span><span class="pill">4年 ／ 40分</span></div>
+      <div class="paper-head"><span>自学自伸学力テスト　小学5年　11月　国語</span><span class="pill">40分 ／ 100点</span></div>
 
       <div class="q">
-        <span class="q-tag">漢字（読み）</span>
-        <p><span class="q-num">1</span>――線の漢字の読みをひらがなで書きましょう。<br>明日の天気を<u style="text-decoration:none;border-bottom:2px solid #333">予想</u>する。</p>
-        <details><summary>答えを見る</summary><div class="ans">答え：<b>よそう</b></div></details>
+        <span class="q-tag">1 漢字</span>
+        <p>次の――線の言葉の読みを、ひらがなで書きましょう。</p>
+        <div class="calc k">
+          <div><span class="q-num">(1)</span><u>各地</u>で雪がふる。</div>
+          <div><span class="q-num">(2)</span>大きな<u>希望</u>をもつ。</div>
+          <div><span class="q-num">(5)</span>毎日、<u>努力</u>を続ける。</div>
+          <div><span class="q-num">(8)</span>町の行事に<u>参加</u>する。</div>
+        </div>
+        <p>次の――線のひらがなを、漢字で書きましょう。送りがながいるものは、送りがなも書きましょう。</p>
+        <div class="calc k">
+          <div><span class="q-num">(9)</span>今日は<u>とくべつ</u>な日だ。</div>
+          <div><span class="q-num">(11)</span>父は工場で<u>はたらく</u>。</div>
+          <div><span class="q-num">(14)</span>世界の平和を<u>ねがう</u>。</div>
+          <div><span class="q-num">(16)</span>海で<u>およぐ</u>。</div>
+        </div>
+        <details><summary>答えを見る</summary><div class="ans">(1) <b>かくち</b>　(2) <b>きぼう</b>　(5) <b>どりょく</b>　(8) <b>さんか</b><br>(9) <b>特別</b>　(11) <b>働く</b>　(14) <b>願う</b>　(16) <b>泳ぐ</b></div></details>
       </div>
 
       <div class="q">
-        <span class="q-tag">漢字（書き）</span>
-        <p><span class="q-num">2</span>――線のひらがなを漢字に直しましょう。<br><u style="text-decoration:none;border-bottom:2px solid #333">せいかく</u>な時計で時間をはかる。</p>
-        <details><summary>答えを見る</summary><div class="ans">答え：<b>正確</b></div></details>
+        <span class="q-tag">2 言葉</span>
+        <p><span class="q-num">(1)</span>「先生が言う」を、先生の動作をうやまう言い方にしたものを選び、記号で答えましょう。</p>
+        <ul class="choices"><li>ア　言います</li><li>イ　もうします</li><li>ウ　おっしゃる</li><li>エ　もうしあげる</li></ul>
+        <p><span class="q-num">(3)</span>「朝から雨が強くふっていた。（　　）、遠足は中止になった。」の（　　）に入るつなぎ言葉を選び、記号で答えましょう。</p>
+        <ul class="choices"><li>ア　しかし　　イ　ところで　　ウ　たとえば　　エ　だから</li></ul>
+        <p><span class="q-num">(5)</span>送りがなが正しい文を一つ選び、記号で答えましょう。</p>
+        <ul class="choices"><li>ア　雨の日が少い。</li><li>イ　水が冷たい。</li><li>ウ　帰り道が短かい。</li><li>エ　人が集る。</li></ul>
+        <p><span class="q-num">(7)</span>「かべに絵をかける。」の「かける」と同じ意味で使われているものを選び、記号で答えましょう。</p>
+        <ul class="choices"><li>ア　遠くの友だちに電話をかける。</li><li>イ　いすにこしをかける。</li><li>ウ　めがねをかける。</li><li>エ　ぼうしをくぎにかける。</li></ul>
+        <details><summary>答えを見る</summary><div class="ans">(1) <b>ウ</b>　(3) <b>エ</b>　(5) <b>イ</b>　(7) <b>エ</b><br>(5)は「少ない」「短い」「集まる」が正しい送りがなです。</div></details>
       </div>
 
       <div class="q">
-        <span class="q-tag">言葉のきまり</span>
-        <p><span class="q-num">3</span>（　）に入る漢字一字を書き、ことわざを完成させましょう。<br>（　）の上にも三年</p>
-        <details><summary>答えを見る</summary><div class="ans">答え：<b>石</b><br>意味：つらくてもがまんして続ければ、いつかはむくわれること。</div></details>
-      </div>
+        <span class="q-tag">3 物語文</span>
+        <p>次の文章を読んで、あとの問いに答えましょう。</p>
+        <p class="lead-box">次の文章は、合唱コンクールでピアノの<ruby>伴奏<rt>ばんそう</rt></ruby>をすることになった五年生の陽菜と、友達の結衣の話です。</p>
+        <p class="note" style="text-align:left;margin:0 0 4px">↓ 枠の中をスクロールすると、文章を最後まで読めます。</p>
+        <div class="story">
+          <p class="story-title">二人の楽ふ</p>
+          <p>十一月の合唱コンクールで、五年二組は「ふるさとの空」を歌うことになった。ピアノの<ruby>伴奏<rt>ばんそう</rt></ruby>をする人は、オーディションで決めることになった。手をあげたのは、陽菜と結衣の二人だった。二人は一年生のころから同じピアノ教室に通っている、なかよしだ。</p>
+          <p>オーディションの結果、<ruby>伴奏<rt>ばんそう</rt></ruby>は陽菜に決まった。</p>
+          <p class="talk">「おめでとう、陽菜。」</p>
+          <p>結衣はすぐに笑って、手をたたいてくれた。けれども次の日から、結衣は休み時間になると、ほかの友達のところへ行ってしまうようになった。陽菜は、選ばれてうれしいはずなのに、心から<ruby>喜<rt>よろこ</rt></ruby>ぶことができなかった。</p>
+          <p>クラスでの練習が始まって一週間がたった。曲の中ほどに、左手が大きく動くところがある。陽菜は、家で何度ひいてもまちがえなかったのに、みんなの歌声が後ろから聞こえてくると、<u>①指が急に固くなった</u>。</p>
+          <p>その日も、同じところで音がにごった。歌がとぎれ、教室がしんとした。</p>
+          <p class="talk">「ごめん、もう一回。」</p>
+          <p>陽菜の声は、自分でもおどろくほど小さかった。顔を上げると、歌う列のはしで、結衣がじっとこちらを見ていた。陽菜は、あわてて楽ふに目をもどした。結衣なら、あんなところでまちがえたりしない。そう思うと、ため息ばかりが出た。</p>
+          <p>次の日の放課後、陽菜は一人で音楽室に残り、問題のところを何度もくり返した。それでも、明日みんなの前でひけるとは思えなかった。</p>
+          <p>そのとき、とびらが開いた。わすれ物を取りに来た結衣だった。陽菜は、ずっと<ruby>胸<rt>むね</rt></ruby>の中にしまっていた言葉を、思いきって口にした。</p>
+          <p class="talk">「ねえ、結衣。<ruby>伴奏<rt>ばんそう</rt></ruby>、代わってくれないかな。わたしより、結衣のほうがきっとうまくひけるよ。」</p>
+          <p>結衣のまゆが、ぴくりと動いた。</p>
+          <p class="talk">「<u>②なに、それ</u>。」</p>
+          <p>低い声だった。</p>
+          <p class="talk">「ゆずってもらって、わたしがうれしいと思う？　わたしだって、毎日練習したんだよ。それで選ばれなかったんだよ。」</p>
+          <p>結衣の目が赤くなっていた。陽菜は、何も言えなくなった。自分の言葉が、結衣のがんばりをむだにするものだったと、ようやく気づいたのだ。</p>
+          <p>しばらくして、結衣は大きく息をはき、ピアノの横に来た。</p>
+          <p class="talk">「さっきのところ、ひいてみて。」</p>
+          <p>陽菜がひくと、また音がもつれた。</p>
+          <p class="talk">「やっぱり。陽菜、そこに来ると急に速くなるんだよ。まちがえたくなくて、歌から先ににげてる。<ruby>伴奏<rt>ばんそう</rt></ruby>は、一人でひくのとはちがうでしょ。みんなの息つぎを聞いてから、ひけばいいんだよ。」</p>
+          <p>結衣は、歌の部分を小さな声で歌い始めた。陽菜は、その声のあとを追うように、そっとけんばんをおした。結衣が息を<ruby>吸<rt>す</rt></ruby>うところで、陽菜も手を止める。すると、固かった指が、うそのように軽く動いた。</p>
+          <p class="talk">「ほら、できた。」</p>
+          <p>結衣は、陽菜の手元を見ながら、ぽつりと言った。</p>
+          <p class="talk">「わたしが<ruby>伴奏<rt>ばんそう</rt></ruby>したかったのは本当。でも、<u>③陽菜がまちがえるのを見ているほうが、もっといやだった</u>。」</p>
+          <p>陽菜は、楽ふのそのページのすみに、えんぴつで<u>④小さく「いき」と書きこんだ</u>。</p>
+          <p>コンクールの日、体育館のステージは、思っていたよりずっと明るかった。陽菜は、手のひらをスカートでそっとふいてから、楽ふを開いた。すみの「いき」という二文字が、目に入った。</p>
+          <p>あの左手のところが近づく。陽菜は、指を急がせず、みんなが息を<ruby>吸<rt>す</rt></ruby>う音をじっと待った。そして、静かにけんばんをおした。ピアノの音は、歌声にぴたりと重なった。</p>
+          <p>歌い終わると、大きなはく手が起こった。ステージを下りると、結衣がかけよってきた。</p>
+          <p class="talk">「左手のところ、いちばんよかったよ。」</p>
+          <p class="talk">「結衣が教えてくれたからだよ。」</p>
+          <p>結衣は笑ってから、まっすぐ陽菜を見た。</p>
+          <p class="talk">「来年は、わたしがひくからね。オーディション、負けないよ。」</p>
+          <p class="talk">「うん。<u>⑤わたしも負けない</u>。」</p>
+          <p>二人は顔を見合わせて、同時にふき出した。</p>
+        </div>
+        <p class="note" style="text-align:left;margin-top:4px">※実際のテストは縦書きです。</p>
 
-      <div class="q">
-        <span class="q-tag">読解</span>
-        <p><span class="q-num">4</span>次の文章を読んで、問いに答えましょう。</p>
-        <div class="passage">朝顔の種をまいてから一週間がたった。毎朝、ゆうたは水やりをかかさなかった。土の中から小さな緑の芽が顔を出したとき、ゆうたは思わず声を上げた。<u>それ</u>は、ゆうたが毎日待ちつづけていたものだった。</div>
-        <p>――線「それ」が指しているものを、文章中から六字で書きぬきましょう。</p>
-        <details><summary>答えを見る</summary><div class="ans">答え：<b>小さな緑の芽</b><br>「それ」の前に書かれている内容から探します。</div></details>
+        <p><span class="q-num">(1)</span>――線①「指が急に固くなった」とありますが、それはなぜですか。合うものを選び、記号で答えましょう。</p>
+        <ul class="choices"><li>ア　家で練習しすぎて、指がつかれてしまっていたから。</li><li>イ　左手が動くところを、まだ覚えていなかったから。</li><li>ウ　歌声が聞こえて、落ち着かなくなったから。</li><li>エ　結衣に見られていると気づき、はずかしかったから。</li></ul>
+        <p><span class="q-num">(2)</span>――線②「なに、それ」と言ったときの結衣の気持ちに合うものを選び、記号で答えましょう。</p>
+        <ul class="choices"><li>ア　自分の練習を軽く見られて、おこる気持ち。</li><li>イ　<ruby>伴奏<rt>ばんそう</rt></ruby>をゆずってもらえて、ほっとする気持ち。</li><li>ウ　陽菜が<ruby>伴奏<rt>ばんそう</rt></ruby>をやめると聞いて、心配する気持ち。</li><li>エ　わすれ物を取りに来ただけなのに、こまる気持ち。</li></ul>
+        <p><span class="q-num">(3)</span>結衣は、陽菜が急に速くひいてしまうことを、歌との関係でどのように言い表していますか。文章中から九字で書きぬきましょう。</p>
+        <p><span class="q-num">(4)</span>――線③「陽菜がまちがえるのを見ているほうが、もっといやだった」とありますが、このときの結衣の気持ちに合うものを選び、記号で答えましょう。</p>
+        <ul class="choices"><li>ア　<ruby>伴奏<rt>ばんそう</rt></ruby>できないなら、コンクールには出たくない。</li><li>イ　教えたのだから、来年は<ruby>伴奏<rt>ばんそう</rt></ruby>をゆずってほしい。</li><li>ウ　陽菜がまちがえるたびに、代わりにひきたくなる。</li><li>エ　くやしいけれど、陽菜にはうまくひいてほしい。</li></ul>
+        <p><span class="q-num">(5)</span>――線④「小さく『いき』と書きこんだ」とありますが、陽菜がこのように書きこんだのはなぜですか。三十字以内で書きましょう。</p>
+        <p><span class="q-num">(6)</span>――線⑤「わたしも負けない」と言ったときの陽菜は、音楽室で<ruby>伴奏<rt>ばんそう</rt></ruby>を代わってほしいとたのんだときと比べて、どのように変わっていますか。合うものを選び、記号で答えましょう。</p>
+        <ul class="choices"><li>ア　結衣に悪いと思ったが、今はほっとしている。</li><li>イ　自信がなかったが、今は結衣ときそい合いたい。</li><li>ウ　<ruby>伴奏<rt>ばんそう</rt></ruby>をやめたかったが、今は結衣に教わりたい。</li><li>エ　結衣にきらわれたくなかったが、今は気にしない。</li></ul>
+        <details><summary>答えを見る</summary><div class="ans">(1) <b>ウ</b>　(2) <b>ア</b>　(3) <b>歌から先ににげてる</b>　(4) <b>エ</b>　(6) <b>イ</b><br>(5) 解答例：<b>みんなの息つぎを待ってひけば、まちがえずにすむから。</b>（26字）</div></details>
       </div>
     </div>
 
-    <p class="note">※算数は実際の問題からの抜粋です（全5題のうち一部）。国語はイメージです。</p>
+    <p class="note">※算数・国語とも、実際の問題からの抜粋です（一部）。</p>
   </div>
 </section>
 
